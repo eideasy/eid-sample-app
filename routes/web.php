@@ -17,5 +17,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
+
+Route::get('/sign-custom-file', 'SampleViewController@signCustomFile');
+Route::post('/sign-custom-file', 'SignPreparedDocumentController@startSignCustomFile');
+
+Route::get('/show-download-signed-file', 'SampleViewController@showDownloadSignedFile');
+Route::get('/download-signed-file', 'SignPreparedDocumentController@downloadSignedFile');

@@ -1,7 +1,7 @@
 @extends('template')
 
 @section('content')
-    <h1 class="m-b-md">
+    <h1>
         Click Sign to initiate signing below XML that can be sent to Bank later
     </h1>
 
@@ -14,14 +14,9 @@
         front logic is in sign-locally-sample.blade.php with including javascript from sign-locally.js
     </p>
 
-    <div class="links m-b-md">
-        <button onclick="startSigning()">Start signing</button>
-    </div>
+    <button class="btn btn-primary form-control" onclick="startSigning()">Start signing</button>
 
-
-    <code lang="xml">
-        {{$fileContent}}
-    </code>
+    <pre class="pt-5"><code lang="xml">{{$fileContent}}</code></pre>
 
 @endsection
 

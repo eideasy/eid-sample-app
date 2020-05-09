@@ -1,6 +1,15 @@
 async function startSigning() {
     toastr.success('Start reading certificate');
-    const certificate = await window.hwcrypto.getCertificate({lang: 'en'});
+
+    // If returns not allowed then not running over HTTPS
+    let certificate=null;
+    try {
+        certificate = await window.hwcrypto.getCertificate({lang: 'en'});
+    } catch(err) {
+        toastr.error("Getting certificate failed. Are you running over HTTPS?");
+        return;
+    }
+
     toastr.success('Certificate acquired, preparing container');
     console.log("certificate is", certificate);
     const hashResponse = await fetch("/api/signatures/create-container-for-signing", {
