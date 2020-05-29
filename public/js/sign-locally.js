@@ -39,7 +39,7 @@ async function startSigning() {
     }, {lang: 'en'});
     toastr.success('Signature on the card completed, finalizing signature and getting signed container');
 
-    const signResponse = (await fetch("/api/signatures/finalize-external-signature", {
+    const signResponse = await fetch("/api/signatures/finalize-external-signature", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -48,7 +48,7 @@ async function startSigning() {
             containerId: hashResponse.containerId,
             signature: btoa(String.fromCharCode(...signature.value))
         })
-    })).then(response => response.json());
+    }).then(response => response.json());
 
     toastr.success('Signed container saved to your Storage folder');
     console.log("Here is signed container: ", signResponse);
