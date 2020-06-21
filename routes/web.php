@@ -19,6 +19,9 @@ Route::get('/', function () {
 
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
 
+Route::get('/add-signature-signed-file', 'SampleViewController@signAsiceFile');
+Route::post('/add-signature-signed-file', 'SignPreparedDocumentController@startAddSignature');
+
 Route::get('/sign-custom-file', 'SampleViewController@signCustomFile');
 Route::post('/sign-custom-file', 'SignPreparedDocumentController@startSignCustomFile');
 

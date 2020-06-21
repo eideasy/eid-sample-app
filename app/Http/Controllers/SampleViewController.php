@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Storage;
 class SampleViewController extends Controller
 {
 
+    public function signAsiceFile() {
+        return view('add-signature');
+    }
+
     public function showDownloadSignedFile(Request $request)
     {
         $fileId = $request->file_id;

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 
-class SignPreparedDocumentController extends Controller
+class AddSignatureController extends Controller
 {
     /**
      * @var Client
@@ -28,7 +28,7 @@ class SignPreparedDocumentController extends Controller
             'redirect_uri'  => 'nullable|url',
             'unsigned_file' => 'required|file'
         ]);
-        info("Start preparing signing");
+        info("Start preparing adding signature");
 
         $apiUrl = env('EID_API_URL') . "/api/v2/prepare_external_doc";
 
