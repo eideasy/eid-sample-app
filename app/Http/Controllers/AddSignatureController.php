@@ -22,15 +22,15 @@ class AddSignatureController extends Controller
         $this->client = $client;
     }
 
-    public function startSignCustomFile(Request $request)
+    public function startAddingSignature(Request $request)
     {
         $request->validate([
             'redirect_uri'  => 'nullable|url',
-            'unsigned_file' => 'required|file'
+            'signed_file' => 'required|file'
         ]);
         info("Start preparing adding signature");
 
-        $apiUrl = env('EID_API_URL') . "/api/v2/prepare_external_doc";
+        $apiUrl = env('EID_API_URL') . "/api/v2/prepare-add-signature";
 
         $fileId = Str::random();
         try {
@@ -42,23 +42,23 @@ class AddSignatureController extends Controller
                     'client_id'          => env('EID_CLIENT_ID'),
                     'secret'             => env('EID_SECRET'),
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
-                    'filename'           => $request->file('unsigned_file')->getClientOriginalName(),
-                    'file_content'       => base64_encode(file_get_contents($request->file('unsigned_file')->path()))
+                    'filename'           => $request->file('signed_file')->getClientOriginalName(),
+                    'container'       => base64_encode(file_get_contents($request->file('signed_file')->path()))
                 ]
             ]);
         } catch (ClientException $e) {
             $response = $e->getResponse()->getBody();
-            Log::error("Container creation failed: $response");
+            Log::error("Add signature preparation failed: $response");
             return $response;
         }
 
         $data = json_decode((string)$response->getBody());
         Cache::put($fileId, $data->doc_id); //Keep for later so we can download the file
-        info("File prepared for signing file_id=$fileId, doc_id=$data->doc_id");
+        info("Signed file prepared for adding signature: $fileId, doc_id=$data->doc_id");
 
         $clientId = env('EID_CLIENT_ID');
 
-        return redirect()->to(env('EID_API_URL') . "/sign_contract_external?client_id=$clientId&doc_id=$data->doc_id");
+        return redirect()->to(env('EID_API_URL') . "/add-signature?client_id=$clientId&doc_id=$data->doc_id");
     }
 
     public function downloadSignedFile(Request $request)

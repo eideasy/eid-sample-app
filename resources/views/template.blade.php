@@ -22,8 +22,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js" integrity="sha256-3blsJd4Hli/7wCQ+bmgXfOdK7p/ZUMtPXY08jmxSSgk=" crossorigin="anonymous"></script>
 
-<script type="text/javascript" src="{{mix('/js/app.js')}}"></script>
-
 <script>
     toastr.options = {
         "closeButton": false,

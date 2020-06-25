@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class EmbeddedIdentityController extends Controller
 {
@@ -26,6 +27,7 @@ class EmbeddedIdentityController extends Controller
                 ]
             );
         } catch (ClientException $exception) {
+            Log::error("Smart-ID login complete failed", [$exception]);
             $response     = $exception->getResponse();
             $responseData = json_decode((string)$response->getBody());
             return response()->json([
@@ -59,6 +61,7 @@ class EmbeddedIdentityController extends Controller
                 ]
             );
         } catch (ClientException $exception) {
+            Log::error("Smart-ID login start failed", [$exception]);
             $response     = $exception->getResponse();
             $responseData = json_decode((string)$response->getBody());
             return response()->json([
