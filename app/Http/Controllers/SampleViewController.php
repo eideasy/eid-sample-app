@@ -8,7 +8,13 @@ use Illuminate\Support\Facades\Storage;
 class SampleViewController extends Controller
 {
 
-    public function signAsiceFile() {
+    public function getEmbeddedIdentification()
+    {
+        return view('embedded-identification');
+    }
+
+    public function signAsiceFile()
+    {
         return view('add-signature');
     }
 

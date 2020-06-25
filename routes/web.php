@@ -19,6 +19,8 @@ Route::get('/', function () {
 
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
 
+Route::get('/embedded-identification', 'SampleViewController@getEmbeddedIdentification');
+
 Route::get('/add-signature-signed-file', 'SampleViewController@signAsiceFile');
 Route::post('/add-signature-signed-file', 'SignPreparedDocumentController@startAddSignature');
 

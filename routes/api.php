@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/signatures/create-container-for-signing', 'SignLocallyController@createContainerForSigning');
 Route::post('/signatures/finalize-external-signature', 'SignLocallyController@finalizeSignature');
+
+Route::post('/identity/smart-id/start', 'EmbeddedIdentityController@startSmartidLogin');
+Route::post('/identity/smart-id/finish', 'EmbeddedIdentityController@finishSmartidLogin');
