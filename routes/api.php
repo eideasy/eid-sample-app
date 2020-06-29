@@ -19,3 +19,6 @@ Route::post('/signatures/finalize-external-signature', 'SignLocallyController@fi
 
 Route::post('/identity/smart-id/start', 'EmbeddedIdentityController@startSmartidLogin');
 Route::post('/identity/smart-id/finish', 'EmbeddedIdentityController@finishSmartidLogin');
+
+Route::post('/identity/mobile-id/start', 'EmbeddedIdentityController@startMobileidLogin');
+Route::post('/identity/mobile-id/finish', 'EmbeddedIdentityController@finishMobileidLogin');

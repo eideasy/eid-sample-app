@@ -29,7 +29,7 @@
                      content-class="shadow">
                 Please check your phone and enter Smart-ID PIN1 to continue logging in.
                 <br>
-                Control code: <strong>{{challenge}}</strong>
+                Verification code: <strong>{{challenge}}</strong>
             </b-modal>
         </div>
     </div>
