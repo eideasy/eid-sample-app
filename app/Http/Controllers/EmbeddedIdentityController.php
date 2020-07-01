@@ -20,9 +20,13 @@ class EmbeddedIdentityController extends Controller
         try {
             $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/mobile-id/complete";
             $response = $client->post($url, [
-                    'json' => [
+                    'headers' => [
+                        'accept' => 'application/json',
+                    ],
+                    'json'    => [
                         'secret' => env('EID_SECRET'),
                         'token'  => $data['token'],
+                        'lang'   => 'en',
                     ]
                 ]
             );
@@ -36,7 +40,11 @@ class EmbeddedIdentityController extends Controller
         }
 
         $responseData = json_decode((string)$response->getBody());
-        unset($responseData->email);
+        if ($responseData->status !== "OK") {
+            return response()->json([
+                'message' => $responseData->message,
+            ], 400);
+        }
 
         return response()->json($responseData);
     }
@@ -46,17 +54,21 @@ class EmbeddedIdentityController extends Controller
         $client = app(Client::class);
 
         $data = $request->validate([
-            'phone'  => 'required',
-            'idcode' => 'required',
+            'idcode' => 'required|size:11',
+            'phone'  => 'required|min:6|max:15|startsWith:+372,+370',
         ]);
 
         try {
             $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/mobile-id/start";
             $response = $client->post($url, [
-                    'json' => [
+                    'headers' => [
+                        'accept' => 'application/json',
+                    ],
+                    'json'    => [
                         'secret' => env('EID_SECRET'),
                         'phone'  => $data['phone'],
-                        'idcode' => $data['idcode']
+                        'idcode' => $data['idcode'],
+                        'lang'   => 'en',
                     ]
                 ]
             );
@@ -88,9 +100,13 @@ class EmbeddedIdentityController extends Controller
         try {
             $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/smart-id/complete";
             $response = $client->post($url, [
-                    'json' => [
+                    'headers' => [
+                        'accept' => 'application/json',
+                    ],
+                    'json'    => [
                         'secret' => env('EID_SECRET'),
                         'token'  => $data['token'],
+                        'lang'   => 'en',
                     ]
                 ]
             );
@@ -121,10 +137,14 @@ class EmbeddedIdentityController extends Controller
         try {
             $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/smart-id/start";
             $response = $client->post($url, [
-                    'json' => [
+                    'headers' => [
+                        'accept' => 'application/json',
+                    ],
+                    'json'    => [
                         'secret'  => env('EID_SECRET'),
                         'country' => $data['country'],
-                        'idcode'  => $data['idcode']
+                        'idcode'  => $data['idcode'],
+                        'lang'    => 'en',
                     ]
                 ]
             );

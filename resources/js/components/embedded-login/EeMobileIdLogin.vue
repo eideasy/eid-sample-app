@@ -8,7 +8,8 @@
         <div class="row">
             <div class="form-group col-md-5">
                 <label for="phone">Phone</label>
-                <input v-model="phone" class="form-control" id="phone" placeholder="+372..."  v-bind:class="{ 'is-invalid': !validPhone }">
+                <input v-model="phone" class="form-control" id="phone" placeholder="+372..."
+                       v-bind:class="{ 'is-invalid': !validPhone }">
             </div>
             <div class="form-group col-md-7">
                 <label for="idcode">Identity code</label>
@@ -70,6 +71,13 @@
                     this.showModal = false;
                 } catch (err) {
                     this.error = err.response.data.message;
+                    if (err.response.data.errors) {
+                        let errorValues = Object.values(err.response.data.errors);
+                        errorValues.forEach(errValue => {
+                            this.error = this.error + " " + errValue[0];
+                        })
+                    }
+                    this.showModal = false;
                 }
             }
         },

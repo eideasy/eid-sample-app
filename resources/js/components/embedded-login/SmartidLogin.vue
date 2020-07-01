@@ -73,6 +73,12 @@
                     this.showModal = false;
                 } catch (err) {
                     this.error = err.response.data.message;
+                    if (err.response.data.errors) {
+                        let errorValues = Object.values(err.response.data.errors);
+                        errorValues.forEach(errValue => {
+                            this.error = this.error + " " + errValue[0];
+                        })
+                    }
                 }
             }
         }
