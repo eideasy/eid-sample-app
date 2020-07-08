@@ -5,18 +5,37 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class EmbeddedIdentityController extends Controller
 {
+    public function finishIdCardLogin(Request $request)
+    {
+        $data = $request->validate([
+            'token'   => 'required',
+            'country' => 'required',
+            'lang'    => 'nullable'
+        ]);
+
+        $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/id-card/complete";
+        $response = Http::post($url, [
+            'secret'  => env('EID_SECRET'),
+            'token'   => $data['token'],
+            'country' => $data['country'],
+            'lang'    => $data['lang'] ?? 'en',
+        ]);
+
+        return response()->json($response->json(), $response->status());
+    }
+
     public function finishMobileidLogin(Request $request)
     {
-        $client = app(Client::class);
-
         $data = $request->validate([
             'token' => 'required',
         ]);
 
+        $client = app(Client::class);
         try {
             $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/mobile-id/complete";
             $response = $client->post($url, [

@@ -22,3 +22,5 @@ Route::post('/identity/smart-id/finish', 'EmbeddedIdentityController@finishSmart
 
 Route::post('/identity/mobile-id/start', 'EmbeddedIdentityController@startMobileidLogin');
 Route::post('/identity/mobile-id/finish', 'EmbeddedIdentityController@finishMobileidLogin');
+
+Route::post('/identity/id-card/finish', 'EmbeddedIdentityController@finishIdcardLogin');
