@@ -41,9 +41,6 @@
         methods: {
             chooseMethod(method) {
                 this.method = method;
-            },
-            startSmartId() {
-                axios.post('/api/')
             }
         }
     }
