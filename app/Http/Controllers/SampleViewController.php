@@ -21,7 +21,7 @@ class SampleViewController extends Controller
     public function showDownloadSignedFile(Request $request)
     {
         $fileId = $request->file_id;
-        return view('download-signed-file', compact('fileId'));
+        return view('download-signed-file', ['fileId' => $fileId]);
     }
 
     public function signCustomFile()
@@ -33,7 +33,6 @@ class SampleViewController extends Controller
     {
         $fileContent = Storage::disk('samples')->get('payment.xml');
 
-        return view('sign-locally-sample', compact("fileContent"));
+        return view('sign-locally-sample', ["fileContent" => $fileContent]);
     }
-
 }
