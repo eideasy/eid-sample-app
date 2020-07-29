@@ -52,11 +52,11 @@ class SignLocallyController extends Controller
 
         $data = json_decode((string)$response->getBody());
 
-        info("Container prepared, hash to be signed is $data->hash, prepared contaner id=$data->containerId");
+        info("Container prepared, hash to be signed is $data->signedInfoDigest, prepared container id=$data->doc_id");
 
         return response()->json([
-            'hash'        => $data->hash,
-            'containerId' => $data->containerId
+            'hash'   => $data->signedInfoDigest,
+            'doc_id' => $data->doc_id
         ]);
     }
 
@@ -71,10 +71,10 @@ class SignLocallyController extends Controller
                     'Accept' => 'application/json'
                 ],
                 'json'    => [
-                    'client_id'   => env('EID_CLIENT_ID'),
-                    'secret'      => env('EID_SECRET'),
-                    'containerId' => $request->containerId,
-                    'signature'   => $request->signature
+                    'client_id' => env('EID_CLIENT_ID'),
+                    'secret'    => env('EID_SECRET'),
+                    'doc_id'    => $request->doc_id,
+                    'signature' => $request->signature
                 ]
             ]);
         } catch (ClientException $e) {

@@ -45,7 +45,7 @@ async function startSigning() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            containerId: hashResponse.containerId,
+            doc_id: hashResponse.doc_id,
             signature: btoa(String.fromCharCode(...signature.value))
         })
     }).then(response => response.json());

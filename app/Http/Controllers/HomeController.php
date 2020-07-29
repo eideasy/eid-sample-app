@@ -25,11 +25,11 @@ class HomeController extends Controller
     {
         // Step 1. Get access_token.
         $response = Http::post('https://id.eideasy.com/oauth/access_token', [
-            'code' => $code,
-            'grant_type' => 'authorization_code',
-            'client_id' =>  env('EID_CLIENT_ID'),
+            'code'          => $code,
+            'grant_type'    => 'authorization_code',
+            'client_id'     => env('EID_CLIENT_ID'),
             'client_secret' => env('EID_SECRET'),
-            'redirect_uri' => env('REDIRECT_URI')
+            'redirect_uri'  => env('REDIRECT_URI')
         ]);
         if (!isset($response['access_token'])) {
             return $response->body();
@@ -40,7 +40,7 @@ class HomeController extends Controller
         $userData = Http::get('https://id.eideasy.com/api/v2/user_data', [
             'access_token' => $accesToken,
         ]);
-        
+
         return $userData->body();
     }
 }
