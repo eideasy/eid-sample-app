@@ -4,6 +4,9 @@
     <h1>
         eID sample apps
     </h1>
+    <p>
+        Source code for this app can be found from <a href="https://github.com/eideasy/eid-sample-app">https://github.com/eideasy/eid-sample-app</a>
+    </p>
 
     <ul class="list-group">
         <li class="list-group-item"><a href="{{$authorizeUri}}">Login with OAuth 2.0</a></li>
