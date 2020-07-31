@@ -12,7 +12,15 @@
 </head>
 <body>
 <div class="flex-center position-ref full-height">
-    <div class="container pt-5">
+    <div class="container">
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand" href="/">
+                Home
+            </a>
+        </nav>
+    </div>
+
+    <div class="container">
         @yield('content')
     </div>
 </div>
