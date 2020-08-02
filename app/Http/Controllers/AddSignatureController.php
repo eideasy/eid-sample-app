@@ -65,7 +65,7 @@ class AddSignatureController extends Controller
     {
         info("Start downloading signed file");
 
-        $apiUrl = env('EID_API_URL') . "/api/v2/download_external_signed_doc";
+        $apiUrl = env('EID_API_URL') . "/api/signatures/download-signed-asice";
 
         try {
             $response = $this->client->post($apiUrl, [
