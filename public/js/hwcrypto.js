@@ -1,18 +1,19 @@
-/*! This is hwcrypto.js 0.0.13 generated on 2018-02-25 */
-/* DO NOT EDIT (use src/hwcrypto.js) */
-
 var hwcrypto = function hwcrypto() {
     "use strict";
     var _debug = function (x) {
+        console.log(x);
     };
     _debug("hwcrypto.js activated");
     window.addEventListener = window.addEventListener || window.attachEvent;
+
     function hasPluginFor(mime) {
         return navigator.mimeTypes && mime in navigator.mimeTypes;
     }
+
     function hasExtensionFor(cls) {
         return typeof window[cls] === "function";
     }
+
     function _hex2array(str) {
         if (typeof str == "string") {
             var len = Math.floor(str.length / 2);
@@ -23,14 +24,17 @@ var hwcrypto = function hwcrypto() {
             return ret;
         }
     }
+
     function _array2hex(args) {
         var ret = "";
         for (var i = 0; i < args.length; i++) ret += (args[i] < 16 ? "0" : "") + args[i].toString(16);
         return ret.toLowerCase();
     }
+
     function _mimeid(mime) {
         return "hwc" + mime.replace("/", "").replace("-", "");
     }
+
     function loadPluginFor(mime) {
         var element = _mimeid(mime);
         if (document.getElementById(element)) {
@@ -38,6 +42,7 @@ var hwcrypto = function hwcrypto() {
             return document.getElementById(element);
         }
         _debug("Loading plugin for " + mime + " into " + element);
+
         var objectTag = '<object id="' + element + '" type="' + mime + '" style="width: 1px; height: 1px; position: absolute; visibility: hidden;"></object>';
         var div = document.createElement("div");
         div.setAttribute("id", "pluginLocation" + element);
@@ -45,8 +50,10 @@ var hwcrypto = function hwcrypto() {
         document.getElementById("pluginLocation" + element).innerHTML = objectTag;
         return document.getElementById(element);
     }
-    var digidoc_mime = "application/x-digidoc";
-    var digidoc_chrome = "TokenSigning";
+
+    var digidoc_mime = "-";
+    var digidoc_chrome = "-";
+
     var USER_CANCEL = "user_cancel";
     var NO_CERTIFICATES = "no_certificates";
     var INVALID_ARGUMENT = "invalid_argument";
@@ -54,23 +61,47 @@ var hwcrypto = function hwcrypto() {
     var TECHNICAL_ERROR = "technical_error";
     var NO_IMPLEMENTATION = "no_implementation";
     var NOT_ALLOWED = "not_allowed";
+
     function probe() {
-        var msg = "probe() detected ";
-        if (hasExtensionFor(digidoc_chrome)) {
-            _debug(msg + digidoc_chrome);
+        let countryValues = [
+            {
+                digidoc_mime: "application/x-digidoc",
+                digidoc_chrome: "TokenSigning"
+            },
+            {
+                digidoc_mime: "application/x-eparaksts",
+                digidoc_chrome: "eParakstsTokenSigning"
+            }
+        ]
+
+        for (let value of countryValues) {
+            if (hasPluginFor(value.digidoc_mime)) {
+                digidoc_mime = value.digidoc_mime;
+                _debug("Using plugin " + digidoc_mime);
+            }
         }
+
         if (hasPluginFor(digidoc_mime)) {
             _debug(msg + digidoc_mime);
+        }
+
+        for (let value of countryValues) {
+            if (hasExtensionFor(value.digidoc_chrome)) {
+                digidoc_chrome = value.digidoc_chrome;
+                _debug("Using chrome " + digidoc_chrome);
+            }
         }
     }
 
     window.addEventListener("load", function (event) {
         probe();
     });
+
     function DigiDocPlugin() {
         this._name = "NPAPI/BHO for application/x-digidoc";
-        var p = loadPluginFor(digidoc_mime);
+        var p = loadPluginFor();
         var certificate_ids = {};
+
         function code2str(err) {
             _debug("Error: " + err + " with: " + p.errorMessage);
             switch (parseInt(err)) {
@@ -157,6 +188,7 @@ var hwcrypto = function hwcrypto() {
             });
         };
     }
+
     function DigiDocExtension() {
         this._name = "Chrome native messaging extension";
         var p = null;
@@ -183,6 +215,7 @@ var hwcrypto = function hwcrypto() {
             return p.sign(cert, hash, options);
         };
     }
+
     function NoBackend() {
         this._name = "No implementation";
         this.check = function () {
@@ -200,8 +233,10 @@ var hwcrypto = function hwcrypto() {
             return Promise.reject(new Error(NO_IMPLEMENTATION));
         };
     }
+
     var _backend = null;
     var fields = {};
+
     function _testAndUse(Backend) {
         return new Promise(function (resolve, reject) {
             var b = new Backend();
@@ -217,7 +252,12 @@ var hwcrypto = function hwcrypto() {
             });
         });
     }
+
     function _autodetect(force) {
+        if (digidoc_chrome === "-" && digidoc_mime === "-") {
+            probe();
+        }
+
         return new Promise(function (resolve, reject) {
             _debug("Autodetecting best backend");
             if (typeof force === "undefined") {
@@ -236,7 +276,8 @@ var hwcrypto = function hwcrypto() {
                     }
                 });
             }
-            if (navigator.userAgent.indexOf("MSIE") != -1 || navigator.userAgent.indexOf("Trident") != -1) {
+
+            if (navigator.userAgent.indexOf("MSIE") !== -1 || navigator.userAgent.indexOf("Trident") !== -1) {
                 _debug("Assuming IE BHO, testing");
                 return tryDigiDocPlugin();
             }
