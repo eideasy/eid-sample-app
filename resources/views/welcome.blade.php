@@ -7,6 +7,12 @@
     <p>
         Source code for this app can be found from <a href="https://github.com/eideasy/eid-sample-app">https://github.com/eideasy/eid-sample-app</a>
     </p>
+    <p>
+        Full API documentation is available at <a href=" https://documenter.getpostman.com/view/3869493/Szf6WoG1">https://documenter.getpostman.com/view/3869493/Szf6WoG1</a>
+    </p>
+    <p>
+        This app is built with Laravel and is using VueJS in some places. It is meant to be reference to look at when you get into trouble with your integration.
+    </p>
 
     <ul class="list-group">
         <li class="list-group-item"><a href="{{$authorizeUri}}">Login with OAuth 2.0</a></li>
