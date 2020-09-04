@@ -10,7 +10,9 @@ For running locally
 - copy .env.example to .env file and change values under Configuration chapter
 - run "php artisan key:generate"
 - run "composer install"
-- start the app with "php artisan serve" or install it to 
+- run "npm install"
+- run "npm run dev" to create public/js/app.js and public/css/style.css 
+- start the app with "php artisan serve" or install it to server
 
 ## Configuration
 

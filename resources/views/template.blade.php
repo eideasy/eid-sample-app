@@ -6,11 +6,12 @@
 
     <title>eID Easy sample apps</title>
 
-    <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/vendor/toastr.min.css">
+    <link rel="stylesheet" href="{{asset('/css/vendor/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{asset('/css/vendor/toastr.min.css')}}">
     <link rel="stylesheet" href="{{mix('/css/style.css')}}">
 </head>
 <body>
+
 <div class="flex-center position-ref full-height">
     <div class="container">
         <nav class="navbar navbar-light bg-light">
@@ -24,10 +25,11 @@
         @yield('content')
     </div>
 </div>
-<script src="/js/vendor/jquery-3.5.1.min.js"></script>
-<script src="/js/vendor/popper.min.js"></script>
-<script src="/js/vendor/bootstrap.min.js"></script>
-<script src="/js/vendor/toastr.min.js"></script>
+
+<script src="{{asset('/js/vendor/jquery-3.5.1.min.js')}}"></script>
+<script src="{{asset('/js/vendor/popper.min.js')}}"></script>
+<script src="{{asset('/js/vendor/bootstrap.min.js')}}"></script>
+<script src="{{asset('/js/vendor/toastr.min.js')}}"></script>
 
 <script>
     toastr.options = {
