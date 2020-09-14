@@ -51,6 +51,10 @@
                 } catch (err) {
                     this.token = null;
                     console.log('Error reading card', err);
+                    if(!err.response) {
+                        this.error = "Card reading failed, possibly wrong PIN entered";
+                        return;
+                    }
                     if (!err.response.data) {
                         this.error = "Unknown error. Check API response from developer tools";
                         return;

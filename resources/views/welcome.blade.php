@@ -11,15 +11,14 @@
         Full API documentation is available at <a href=" https://documenter.getpostman.com/view/3869493/Szf6WoG1">https://documenter.getpostman.com/view/3869493/Szf6WoG1</a>
     </p>
     <p>
-        This app is built with Laravel and is using VueJS in some places. It is meant to be reference to look at when you get into trouble with your integration.
+        This app is built with Laravel and is using VueJS in some places. It is meant to be reference to look at when you get into trouble with your integration. If you run this app then do not forget to execute commands "composer install" and "npm run dev"
     </p>
 
     <ul class="list-group">
         <li class="list-group-item"><a href="{{$authorizeUri}}">Login with OAuth 2.0</a></li>
         <li class="list-group-item"><a href="{{url('embedded-identification')}}">Embedded identification</a></li>
-        <li class="list-group-item"><a href="{{url('sign-custom-file')}}">Upload and sign PDF file</a></li>
+        <li class="list-group-item"><a href="{{url('sign-custom-file')}}">Sign a file</a></li>
         <li class="list-group-item"><a href="{{url('add-signature-signed-file')}}">Add signature to existing .asice container</a></li>
-        <li class="list-group-item"><a href="{{url('sign-locally-sample')}}">Advanced: Sign locally sample</a></li>
     </ul>
     <div>
         @if (isset($userData))

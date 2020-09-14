@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class SignPreparedDocumentController extends Controller
@@ -26,11 +27,20 @@ class SignPreparedDocumentController extends Controller
     {
         $request->validate([
             'redirect_uri'  => 'nullable|url',
-            'unsigned_file' => 'required|file'
+            'unsigned_file' => 'required|file',
+            'signType'      => 'required|in:local,external'
         ]);
         info("Start preparing signing");
 
-        $apiUrl = env('EID_API_URL') . "/api/v2/prepare_external_doc";
+        $apiUrl = env('EID_API_URL') . "/api/signatures/prepare-files-for-signing";
+
+        $files = [
+            [
+                'fileName'    => $request->file('unsigned_file')->getClientOriginalName(),
+                'fileContent' => base64_encode(file_get_contents($request->file('unsigned_file')->path())),
+                'mimeType'    => $request->file('unsigned_file')->getMimeType(),
+            ]
+        ];
 
         $fileId = Str::random();
         try {
@@ -42,8 +52,7 @@ class SignPreparedDocumentController extends Controller
                     'client_id'          => env('EID_CLIENT_ID'),
                     'secret'             => env('EID_SECRET'),
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
-                    'filename'           => $request->file('unsigned_file')->getClientOriginalName(),
-                    'file_content'       => base64_encode(file_get_contents($request->file('unsigned_file')->path()))
+                    'files'              => $files,
                 ]
             ]);
         } catch (ClientException $e) {
@@ -57,8 +66,12 @@ class SignPreparedDocumentController extends Controller
         info("File prepared for signing file_id=$fileId, doc_id=$data->doc_id");
 
         $clientId = env('EID_CLIENT_ID');
-
-        return redirect()->to(env('EID_API_URL') . "/sign_contract_external?client_id=$clientId&doc_id=$data->doc_id");
+        if ($request->signType === "external") {
+            return redirect()->to(env('EID_API_URL') . "/sign_contract_external?client_id=$clientId&doc_id=$data->doc_id");
+        } else {
+            Session::put("prepared-files-$data->doc_id", $files);
+            return redirect()->to("/sign-locally-sample?doc_id=$data->doc_id");
+        }
     }
 
     public function downloadSignedFile(Request $request)
@@ -75,7 +88,9 @@ class SignPreparedDocumentController extends Controller
                 'json'    => [
                     'client_id' => env('EID_CLIENT_ID'),
                     'secret'    => env('EID_SECRET'),
-                    'doc_id'    => Cache::get($request->file_id), //doc_id was saved to cache when preparing the file for download
+                    // doc_id was saved to cache when preparing the file for download.
+                    // if we are signing locally then we know the doc_id all the time.
+                    'doc_id'    => Cache::get($request->file_id, $request->file_id),
                 ]
             ]);
         } catch (ClientException $e) {

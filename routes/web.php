@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', 'HomeController@getWelcome');
 
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
-
 Route::get('/embedded-identification', 'SampleViewController@getEmbeddedIdentification');
 
 Route::get('/add-signature-signed-file', 'SampleViewController@signAsiceFile');
@@ -26,5 +25,6 @@ Route::post('/add-signature-signed-file', 'AddSignatureController@startAddingSig
 Route::get('/sign-custom-file', 'SampleViewController@signCustomFile');
 Route::post('/sign-custom-file', 'SignPreparedDocumentController@startSignCustomFile');
 
+Route::get('/download-unsigned-file', 'SignLocallyController@downloadUnSignedFile');
 Route::get('/show-download-signed-file', 'SampleViewController@showDownloadSignedFile');
 Route::get('/download-signed-file', 'SignPreparedDocumentController@downloadSignedFile');

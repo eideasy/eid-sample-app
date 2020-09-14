@@ -2,25 +2,27 @@
 
 @section('content')
     <h1>
-        Click Sign to initiate signing below XML that can be sent to Bank later
+        Sample for signing on your page
     </h1>
 
     <p>
-        Make sure you are running over https, have ID card in the reader and software installed.
+        Make sure you are running over https, have ID card in the reader and software installed is using ID card signing.
     </p>
 
-    <p>
-        Main backend logic is in SignLocallyController. Sample file to be signed is in storage/samples/payment.xml. Main
-        front logic is in sign-locally-sample.blade.php with including javascript from sign-locally.js
-    </p>
+    @foreach($files as $key => $file)
+        <a href="/download-unsigned-file?doc_id={{$doc_id}}&file_id={{$key}}">{{$file['fileName']}}</a><br>
+        <object type="{{$file['mimeType']}}" data="data:{{$file['mimeType']}};base64,{{$file['fileContent']}}">
+            <p>This type of file preview cannot be shown</p>
+        </object>
+    @endforeach
 
-    <button class="btn btn-primary form-control" onclick="startSigning()">Start signing</button>
-
-    <pre class="pt-5"><code lang="xml">{{$fileContent}}</code></pre>
+    <div id="app">
+        <embedded-signing doc_id="{{$doc_id}}"></embedded-signing>
+    </div>
 
 @endsection
 
 @section('scripts')
     <script src="/js/hwcrypto.js"></script>
-    <script src="/js/sign-locally.js"></script>
+    <script type="text/javascript" src="{{mix('/js/app.js')}}"></script>
 @endsection

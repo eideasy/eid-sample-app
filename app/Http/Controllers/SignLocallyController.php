@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use Illuminate\Filesystem\Cache;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class SignLocallyController extends Controller
 {
@@ -20,50 +18,71 @@ class SignLocallyController extends Controller
         $this->client = $client;
     }
 
-    public function createContainerForSigning(Request $request)
+    public function startSigning(Request $request)
     {
-        info("Preparing signing payment.xml with");
-        $apiUrl = env('EID_API_URL') . "/api/signatures/create-container-for-signing";
+        $this->validate([
+            [
+                'client_id'   => 'required|exists:oauth_clients,id',
+                'doc_id'      => 'required|exists:signing_sessions,external_doc_id',
+                'sign_type'   => 'required|in:mobile-id,smart-id,id-card',
+                'phone'       => ['nullable', 'required_if:sign_type,mobile-id', 'regex:/^(\+372|\+370)?[0-9]{3,12}$/'],
+                'idcode'      => 'nullable|required_if:sign_type,mobile-id|required_if:sign_type,smart-id|min:5|max:15',
+                'country'     => 'nullable|required_if:sign_type,mobile-id|required_if:sign_type,smart-id|in:EE,LV,LT',
+                'certificate' => 'nullable|required_if:sign_type,id-card',
+            ]
+        ]);
 
+        $signType = $request->sign_type;
+        $apiUrl   = env('EID_API_URL') . "/api/signatures/start-signing";
+        $data     = [
+            'client_id' => env('EID_CLIENT_ID'),
+            'secret'    => env('EID_SECRET'),
+            'doc_id'    => $request->doc_id,
+            'sign_type' => $request->sign_type,
+        ];
+        if ($signType === "id-card") {
+            $data['certificate'] = $request->certificate;
+        } elseif ($signType === "mobile-id") {
+            $data['phone']   = $request->phone;
+            $data['idcode']  = $request->idcode;
+            $data['country'] = $request->country;
+        } elseif ($signType === "smart-id") {
+            $data['idcode']  = $request->idcode;
+            $data['country'] = $request->country;
+        }
         try {
             $response = $this->client->post($apiUrl, [
                 'headers' => [
                     'Accept' => 'application/json'
                 ],
-                'json'    => [
-                    'client_id'       => env('EID_CLIENT_ID'),
-                    'secret'          => env('EID_SECRET'),
-                    'returnContainer' => false, //set true if you want to verify the container that will be signed
-                    'files'           => [
-                        [
-                            'fileName'    => 'payment.xml',
-                            'fileContent' => base64_encode(Storage::disk('samples')->get('payment.xml')),
-                            'mimeType'    => 'application/xml'
-                        ]
-                    ],
-                    'certificate'     => $request->certificate
-                ]
+                'json'    => $data
             ]);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             $response = $e->getResponse()->getBody();
-            Log::error("Container creation failed: $response");
-            return $response;
+            Log::error("Signature finalization failed: $response");
+            throw $e;
         }
 
         $data = json_decode((string)$response->getBody());
-
-        info("Container prepared, hash to be signed is $data->signedInfoDigest, prepared container id=$data->doc_id");
-
-        return response()->json([
-            'hash'   => $data->signedInfoDigest,
-            'doc_id' => $data->doc_id
-        ]);
+        return response()->json($data);
     }
 
-    public function finalizeSignature(Request $request)
+    public function downloadUnSignedFile(Request $request)
     {
-        info("Preparing signature finalization");
-        $apiUrl = env('EID_API_URL') . "/api/signatures/finalize-external-signature";
+        $files   = session("prepared-files-$request->doc_id");
+        $file    = $files[$request->file_id];
+        $headers = [
+            'Content-type'        => $file['mimeType'],
+            'Content-Disposition' => 'attachment; filename="' . $file['fileName'] . '"',
+        ];
+
+        return response()->make($file['fileContent'], 200, $headers);
+    }
+
+    public function completeIdCardSignature(Request $request)
+    {
+        info("ID card signature finalization");
+        $apiUrl = env('EID_API_URL') . "/api/signatures/id-card/complete";
 
         try {
             $response = $this->client->post($apiUrl, [
@@ -77,7 +96,7 @@ class SignLocallyController extends Controller
                     'signature' => $request->signature
                 ]
             ]);
-        } catch (ClientException $e) {
+        } catch (RequestException $e) {
             $response = $e->getResponse()->getBody();
             Log::error("Signature finalization failed: $response");
             throw $e;

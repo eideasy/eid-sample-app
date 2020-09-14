@@ -29,10 +29,9 @@ class SampleViewController extends Controller
         return view('sign-custom-file');
     }
 
-    public function signLocallySample()
+    public function signLocallySample(Request $request)
     {
-        $fileContent = Storage::disk('samples')->get('payment.xml');
-
-        return view('sign-locally-sample', ["fileContent" => $fileContent]);
+        $files = session("prepared-files-$request->doc_id");
+        return view('sign-locally-sample', ['doc_id' => $request->doc_id, 'files' => $files]);
     }
 }
