@@ -20,7 +20,7 @@ class SignLocallyController extends Controller
 
     public function startSigning(Request $request)
     {
-        $this->validate([
+        $this->validate($request, [
             [
                 'client_id'   => 'required|exists:oauth_clients,id',
                 'doc_id'      => 'required|exists:signing_sessions,external_doc_id',
