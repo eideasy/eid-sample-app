@@ -76,7 +76,7 @@ class SignLocallyController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $file['fileName'] . '"',
         ];
 
-        return response()->make($file['fileContent'], 200, $headers);
+        return response()->make(base64_decode($file['fileContent']), 200, $headers);
     }
 
     public function completeIdCardSignature(Request $request)
