@@ -30,7 +30,7 @@ class AddSignatureController extends Controller
         ]);
         info("Start preparing adding signature");
 
-        $apiUrl = env('EID_API_URL') . "/api/v2/prepare-add-signature";
+        $apiUrl = env('EID_API_URL') . "/api/signatures/prepare-add-signature";
 
         $fileId = Str::random();
         try {
