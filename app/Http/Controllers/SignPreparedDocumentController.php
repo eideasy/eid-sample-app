@@ -28,7 +28,8 @@ class SignPreparedDocumentController extends Controller
         $request->validate([
             'redirect_uri'  => 'nullable|url',
             'unsigned_file' => 'required|file',
-            'signType'      => 'required|in:local,external'
+            'signType'      => 'required|in:local,external',
+            'containerType' => 'required|in:asice,pdf',
         ]);
         info("Start preparing signing");
 
@@ -52,6 +53,7 @@ class SignPreparedDocumentController extends Controller
                     'client_id'          => env('EID_CLIENT_ID'),
                     'secret'             => env('EID_SECRET'),
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
+                    'container_type'     => $request->containerType,
                     'files'              => $files,
                 ]
             ]);

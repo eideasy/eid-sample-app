@@ -18,7 +18,6 @@ export default {
         async idCardSigning() {
             toastr.success('Start reading certificate');
 
-
             let certificate = null;
             try {
                 // If result is not_allowed then not running over HTTPS.
@@ -45,18 +44,9 @@ export default {
             toastr.success('Container prepared, starting hash signing on the card');
             console.log("Getting data to sign: ", startSignResponse);
 
-            const raw = atob(startSignResponse.signedInfoDigest);
-            const rawLength = raw.length;
-            let dataToSign = new Uint8Array(new ArrayBuffer(rawLength));
-
-            for (let i = 0; i < rawLength; i++) {
-                dataToSign[i] = raw.charCodeAt(i);
-            }
-            console.log("Data to sign bytes are", dataToSign);
-
             const signature = await window.hwcrypto.sign(certificate, {
                 type: 'SHA-256',
-                value: dataToSign
+                hex: startSignResponse.hexDigest
             }, {lang: 'en'});
             toastr.success('Signature on the card completed, finalizing signature and getting signed container');
             console.log("Signature is", signature);
