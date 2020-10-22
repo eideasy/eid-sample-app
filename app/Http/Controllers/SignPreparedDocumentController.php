@@ -55,6 +55,7 @@ class SignPreparedDocumentController extends Controller
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
                     'container_type'     => $request->containerType,
                     'files'              => $files,
+                    'baseline'           => 'LT'
                 ]
             ]);
         } catch (ClientException $e) {

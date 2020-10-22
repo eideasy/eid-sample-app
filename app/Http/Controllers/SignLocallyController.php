@@ -93,7 +93,8 @@ class SignLocallyController extends Controller
                     'client_id' => env('EID_CLIENT_ID'),
                     'secret'    => env('EID_SECRET'),
                     'doc_id'    => $request->doc_id,
-                    'signature' => $request->signature
+                    'signature' => $request->signature,
+                    'baseline'  => 'LT'
                 ]
             ]);
         } catch (RequestException $e) {

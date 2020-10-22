@@ -37,7 +37,9 @@
                 this.token = '';
                 let cardReadUrl = `https://${country}${process.env.MIX_EID_CARD_DOMAIN}/api/identity/${process.env.MIX_EID_CLIENTID}/read-card`;
                 try {
-                    let cardReadResponse = await axios.get(cardReadUrl);
+                    let cardReadResponse = await axios.get(cardReadUrl, {
+                        withCredentials: true
+                    });
                     console.log('Received response for read card', cardReadResponse.data);
                     this.token = cardReadResponse.data.token;
 
@@ -51,7 +53,7 @@
                 } catch (err) {
                     this.token = null;
                     console.log('Error reading card', err);
-                    if(!err.response) {
+                    if (!err.response) {
                         this.error = "Card reading failed, possibly wrong PIN entered";
                         return;
                     }
