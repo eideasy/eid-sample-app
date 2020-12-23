@@ -49,7 +49,8 @@ export default {
         async startMobileidSigning() {
             this.error = null;
             try {
-                let startResponse = await axios.post('/api/signatures/start-signing', {
+                let startResponse = await axios.post(`https://id${process.env.MIX_EID_CARD_DOMAIN}/api/signatures/start-signing`, {
+                    client_id: process.env.MIX_EID_CLIENTID,
                     sign_type: "mobile-id",
                     doc_id: this.doc_id,
                     phone: this.phone,
