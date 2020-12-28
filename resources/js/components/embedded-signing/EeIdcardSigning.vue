@@ -30,7 +30,7 @@ export default {
 
             toastr.success('Certificate acquired, preparing container');
             console.log("certificate is", certificate);
-            const startSignResponse = await fetch(`https://id${process.env.MIX_EID_CARD_DOMAIN}/api/signatures/start-signing`, {
+            const startSignResponse = await fetch(`${process.env.MIX_EID_API_URL}/api/signatures/start-signing`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export default {
             toastr.success('Signature on the card completed, finalizing signature and getting signed container');
             console.log("Signature is", signature);
 
-            const signResponse = await fetch(`https://id${process.env.MIX_EID_CARD_DOMAIN}/api/signatures/id-card/complete`, {
+            const signResponse = await fetch(`${process.env.MIX_EID_API_URL}/api/signatures/id-card/complete`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

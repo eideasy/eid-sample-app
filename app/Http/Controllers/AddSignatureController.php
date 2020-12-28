@@ -25,8 +25,8 @@ class AddSignatureController extends Controller
     public function startAddingSignature(Request $request)
     {
         $request->validate([
-            'redirect_uri'  => 'nullable|url',
-            'signed_file' => 'required|file'
+            'redirect_uri' => 'nullable|url',
+            'signed_file'  => 'required|file'
         ]);
         info("Start preparing adding signature");
 
@@ -43,7 +43,7 @@ class AddSignatureController extends Controller
                     'secret'             => env('EID_SECRET'),
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
                     'filename'           => $request->file('signed_file')->getClientOriginalName(),
-                    'container'       => base64_encode(file_get_contents($request->file('signed_file')->path()))
+                    'container'          => base64_encode(file_get_contents($request->file('signed_file')->path()))
                 ]
             ]);
         } catch (ClientException $e) {

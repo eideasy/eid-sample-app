@@ -9,7 +9,7 @@ class HomeController extends Controller
 {
     public function getWelcome(Request $request)
     {
-        $authoriseUri = 'https://id.eideasy.com/oauth/authorize?client_id=' . env('EID_CLIENT_ID') . '&redirect_uri=' . env('REDIRECT_URI') . '&response_type=code';
+        $authoriseUri = env('EID_API_URL') . '/oauth/authorize?client_id=' . env('EID_CLIENT_ID') . '&redirect_uri=' . env('REDIRECT_URI') . '&response_type=code';
 
         // If request has parameter code then there is OAuth 2.0 return and we get user data.
         if ($request->code !== null) {
@@ -24,7 +24,7 @@ class HomeController extends Controller
     protected function getUserData($code)
     {
         // Step 1. Get access_token.
-        $response = Http::post('https://id.eideasy.com/oauth/access_token', [
+        $response = Http::post(env('EID_API_URL') . '/oauth/access_token', [
             'code'          => $code,
             'grant_type'    => 'authorization_code',
             'client_id'     => env('EID_CLIENT_ID'),
@@ -37,7 +37,7 @@ class HomeController extends Controller
         $accesToken = $response['access_token'];
 
         // Step 2. Get user data with access_token.
-        $userData = Http::get('https://id.eideasy.com/api/v2/user_data', [
+        $userData = Http::get(env('EID_API_URL') . '/api/v2/user_data', [
             'access_token' => $accesToken,
         ]);
 

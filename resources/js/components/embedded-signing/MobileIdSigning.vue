@@ -49,7 +49,7 @@ export default {
         async startMobileidSigning() {
             this.error = null;
             try {
-                let startResponse = await axios.post(`https://id${process.env.MIX_EID_CARD_DOMAIN}/api/signatures/start-signing`, {
+                let startResponse = await axios.post(`${process.env.MIX_EID_API_URL}/api/signatures/start-signing`, {
                     client_id: process.env.MIX_EID_CLIENTID,
                     sign_type: "mobile-id",
                     doc_id: this.doc_id,
@@ -61,7 +61,7 @@ export default {
                 this.challenge = startResponse.data.challenge;
                 this.showModal = true;
 
-                let signResponse = await axios.post(`https://id${process.env.MIX_EID_CARD_DOMAIN}/api/signatures/sk-mobile-id/complete`, {
+                let signResponse = await axios.post(`${process.env.MIX_EID_API_URL}/api/signatures/sk-mobile-id/complete`, {
                     client_id: process.env.MIX_EID_CLIENTID,
                     doc_id: this.doc_id,
                     token: startResponse.data.token
