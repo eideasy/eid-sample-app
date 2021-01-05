@@ -461,16 +461,16 @@
         },
         {
             "name": "eideasy/eideasy-php",
-            "version": "v1.0",
+            "version": "v1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eideasy/eideasy-php.git",
-                "reference": "a5bf6d1d8619c8063657a8106649b7321d432d7a"
+                "reference": "9324c1b4a6786422c3184aaf5b56abcc1f3bf97e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/a5bf6d1d8619c8063657a8106649b7321d432d7a",
-                "reference": "a5bf6d1d8619c8063657a8106649b7321d432d7a",
+                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/9324c1b4a6786422c3184aaf5b56abcc1f3bf97e",
+                "reference": "9324c1b4a6786422c3184aaf5b56abcc1f3bf97e",
                 "shasum": ""
             },
             "require": {
@@ -500,9 +500,9 @@
             "description": "Create ASIC-E digital signature containers and add XAdES signatures to the container. Helper SDK for eID Easy API-s.",
             "support": {
                 "issues": "https://github.com/eideasy/eideasy-php/issues",
-                "source": "https://github.com/eideasy/eideasy-php/tree/v1.0"
+                "source": "https://github.com/eideasy/eideasy-php/tree/v1.2"
             },
-            "time": "2020-12-29T08:15:07+00:00"
+            "time": "2021-01-05T17:19:23+00:00"
         },
         {
             "name": "fideloper/proxy",
@@ -940,16 +940,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v8.20.1",
+            "version": "v8.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "b5d8573ab16027867eaa1ac148893833434f9b02"
+                "reference": "a61cab167c35f465a923737ee6e6fb99cd5fde88"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/b5d8573ab16027867eaa1ac148893833434f9b02",
-                "reference": "b5d8573ab16027867eaa1ac148893833434f9b02",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/a61cab167c35f465a923737ee6e6fb99cd5fde88",
+                "reference": "a61cab167c35f465a923737ee6e6fb99cd5fde88",
                 "shasum": ""
             },
             "require": {
@@ -1103,7 +1103,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2020-12-22T21:21:19+00:00"
+            "time": "2021-01-05T15:43:10+00:00"
         },
         {
             "name": "laravel/tinker",
