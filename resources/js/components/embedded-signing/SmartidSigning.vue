@@ -77,7 +77,7 @@ export default {
 
                 console.log("Smart-ID signature completed: ", signResponse);
                 this.showModal = false;
-                window.location = "/show-download-signed-file/?file_id=" + this.doc_id;
+                window.location = "/show-download-signed-file/?doc_id=" + this.doc_id;
             } catch (err) {
                 this.error = err.response.data.message;
                 if (err.response.data.errors) {

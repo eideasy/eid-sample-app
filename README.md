@@ -4,6 +4,7 @@ First go to the https://id.eideasy.com to register website to get client_id and 
 
 ## Installing
 This Sample app is based on the Laravel framework. See more at https://laravel.com/docs/7.x/installation
+For simplicitly the app is designed to work without database. Session is used to store temporary metadata.
 
 For running locally
 

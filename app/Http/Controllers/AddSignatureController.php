@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class AddSignatureController extends Controller
@@ -30,7 +30,7 @@ class AddSignatureController extends Controller
         ]);
         info("Start preparing adding signature");
 
-        $apiUrl = env('EID_API_URL') . "/api/signatures/prepare-add-signature";
+        $apiUrl = config('eideasy.api_url') . "/api/signatures/prepare-add-signature";
 
         $fileId = Str::random();
         try {
@@ -39,8 +39,8 @@ class AddSignatureController extends Controller
                     'Accept' => 'application/json'
                 ],
                 'json'    => [
-                    'client_id'          => env('EID_CLIENT_ID'),
-                    'secret'             => env('EID_SECRET'),
+                    'client_id'          => config('eideasy.client_id'),
+                    'secret'             => config('eideasy.secret'),
                     'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
                     'filename'           => $request->file('signed_file')->getClientOriginalName(),
                     'container'          => base64_encode(file_get_contents($request->file('signed_file')->path()))
@@ -53,19 +53,19 @@ class AddSignatureController extends Controller
         }
 
         $data = json_decode((string)$response->getBody());
-        Cache::put($fileId, $data->doc_id); //Keep for later so we can download the file
+        Session::put("doc_id-$fileId", $data->doc_id); //Keep for later so we can download the file
         info("Signed file prepared for adding signature: $fileId, doc_id=$data->doc_id");
 
-        $clientId = env('EID_CLIENT_ID');
+        $clientId = config('eideasy.client_id');
 
-        return redirect()->to(env('EID_API_URL') . "/add-signature?client_id=$clientId&doc_id=$data->doc_id");
+        return redirect()->to(config('eideasy.api_url') . "/add-signature?client_id=$clientId&doc_id=$data->doc_id");
     }
 
     public function downloadSignedFile(Request $request)
     {
         info("Start downloading signed file");
 
-        $apiUrl = env('EID_API_URL') . "/api/signatures/download-signed-asice";
+        $apiUrl = config('eideasy.api_url') . "/api/signatures/download-signed-asice";
 
         try {
             $response = $this->client->post($apiUrl, [
@@ -73,9 +73,9 @@ class AddSignatureController extends Controller
                     'Accept' => 'application/json'
                 ],
                 'json'    => [
-                    'client_id' => env('EID_CLIENT_ID'),
-                    'secret'    => env('EID_SECRET'),
-                    'doc_id'    => Cache::get($request->file_id), //doc_id was saved to cache when preparing the file for download
+                    'client_id' => config('eideasy.client_id'),
+                    'secret'    => config('eideasy.secret'),
+                    'doc_id'    => Session::get("doc_id-$request->file_id"), //doc_id was saved to session when preparing the file for download
                 ]
             ]);
         } catch (ClientException $e) {

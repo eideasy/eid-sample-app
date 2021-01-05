@@ -75,7 +75,7 @@ export default {
 
             console.log("ID signature completed: ", signResponse);
 
-            window.location = "/show-download-signed-file/?file_id=" + this.doc_id;
+            window.location = "/show-download-signed-file/?doc_id=" + this.doc_id;
         }
     }
 }

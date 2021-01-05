@@ -23,8 +23,8 @@ Route::get('/add-signature-signed-file', 'SampleViewController@signAsiceFile');
 Route::post('/add-signature-signed-file', 'AddSignatureController@startAddingSignature');
 
 Route::get('/sign-custom-file', 'SampleViewController@signCustomFile');
-Route::post('/sign-custom-file', 'SignPreparedDocumentController@startSignCustomFile');
+Route::post('/sign-custom-file', 'SignLocallyController@startSignCustomFile');
 
 Route::get('/download-unsigned-file', 'SignLocallyController@downloadUnSignedFile');
 Route::get('/show-download-signed-file', 'SampleViewController@showDownloadSignedFile');
-Route::get('/download-signed-file', 'SignPreparedDocumentController@downloadSignedFile');
+Route::get('/download-signed-file', 'SignLocallyController@downloadSignedFile');

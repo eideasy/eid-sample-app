@@ -18,9 +18,9 @@ class EmbeddedIdentityController extends Controller
             'lang'    => 'nullable'
         ]);
 
-        $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/id-card/complete";
+        $url      = config('eideasy.api_url') . "/api/identity/" . config('eideasy.client_id') . "/id-card/complete";
         $response = Http::post($url, [
-            'secret'  => env('EID_SECRET'),
+            'secret'  => config('eideasy.secret'),
             'token'   => $data['token'],
             'country' => $data['country'],
             'lang'    => $data['lang'] ?? 'en',
@@ -37,13 +37,13 @@ class EmbeddedIdentityController extends Controller
 
         $client = app(Client::class);
         try {
-            $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/mobile-id/complete";
+            $url      = config('eideasy.api_url') . "/api/identity/" . config('eideasy.client_id') . "/mobile-id/complete";
             $response = $client->post($url, [
                     'headers' => [
                         'accept' => 'application/json',
                     ],
                     'json'    => [
-                        'secret' => env('EID_SECRET'),
+                        'secret' => config('eideasy.secret'),
                         'token'  => $data['token'],
                         'lang'   => 'en',
                     ]
@@ -78,13 +78,13 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         try {
-            $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/mobile-id/start";
+            $url      = config('eideasy.api_url') . "/api/identity/" . config('eideasy.client_id') . "/mobile-id/start";
             $response = $client->post($url, [
                     'headers' => [
                         'accept' => 'application/json',
                     ],
                     'json'    => [
-                        'secret' => env('EID_SECRET'),
+                        'secret' => config('eideasy.secret'),
                         'phone'  => $data['phone'],
                         'idcode' => $data['idcode'],
                         'lang'   => 'en',
@@ -117,13 +117,13 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         try {
-            $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/smart-id/complete";
+            $url      = config('eideasy.api_url') . "/api/identity/" . config('eideasy.client_id') . "/smart-id/complete";
             $response = $client->post($url, [
                     'headers' => [
                         'accept' => 'application/json',
                     ],
                     'json'    => [
-                        'secret' => env('EID_SECRET'),
+                        'secret' => config('eideasy.secret'),
                         'token'  => $data['token'],
                         'lang'   => 'en',
                     ]
@@ -154,13 +154,13 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         try {
-            $url      = env("EID_API_URL") . "/api/identity/" . env("EID_CLIENT_ID") . "/smart-id/start";
+            $url      = config('eideasy.api_url') . "/api/identity/" . config('eideasy.client_id') . "/smart-id/start";
             $response = $client->post($url, [
                     'headers' => [
                         'accept' => 'application/json',
                     ],
                     'json'    => [
-                        'secret'  => env('EID_SECRET'),
+                        'secret'  => config('eideasy.secret'),
                         'country' => $data['country'],
                         'idcode'  => $data['idcode'],
                         'lang'    => 'en',

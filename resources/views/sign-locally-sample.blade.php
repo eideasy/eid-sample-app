@@ -10,10 +10,10 @@
     </p>
 
     @foreach($files as $key => $file)
-        <a href="/download-unsigned-file?doc_id={{$doc_id}}&file_id={{$key}}">{{$file['fileName']}}</a><br>
-        <object type="{{$file['mimeType']}}" data="data:{{$file['mimeType']}};base64,{{$file['fileContent']}}">
+        <a href="/download-unsigned-file?doc_id={{$doc_id}}&filename={{$file['fileName']}}">{{$file['fileName']}}</a><br>
+        <object type="{{$file['mimeType']}}" data="data:{{$file['mimeType']}};base64,{{$file['fileContent']}}" width="1000" height="500">
             <p>This type of file preview cannot be shown</p>
-        </object>
+        </object><br>
     @endforeach
 
     <div id="app">
