@@ -38,7 +38,7 @@ class SampleViewController extends Controller
     public function signLocallySample(Request $request)
     {
         $fileId = Session::get("file_id-$request->doc_id");
-        $metadata = Session::get("prepared-files-$fileId");
+        $metadata = Session::get("prepared-files-$fileId", []);
         $files = [];
         foreach ($metadata as $meta) {
             $file = $meta;

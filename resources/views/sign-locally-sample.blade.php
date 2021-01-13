@@ -9,6 +9,12 @@
         Make sure you are running over https, have ID card in the reader and software installed is using ID card signing.
     </p>
 
+    @if(count($files)===0) {
+        <p>
+            No files prepared for signing
+        </p>
+    @endif
+
     @foreach($files as $key => $file)
         <a href="/download-unsigned-file?doc_id={{$doc_id}}&filename={{$file['fileName']}}">{{$file['fileName']}}</a><br>
         <object type="{{$file['mimeType']}}" data="data:{{$file['mimeType']}};base64,{{$file['fileContent']}}" width="1000" height="500">
