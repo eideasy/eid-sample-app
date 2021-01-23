@@ -55,6 +55,6 @@ class HomeController extends Controller
             });
         }
 
-        return response()->json($responseData);
+        return $responseData;
     }
 }
