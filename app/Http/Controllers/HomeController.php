@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
 {
@@ -38,10 +40,21 @@ class HomeController extends Controller
         $accesToken = $response['access_token'];
 
         // Step 2. Get user data with access_token.
-        $userData = Http::get(config('eideasy.api_url') . '/api/v2/user_data', [
+        $response = Http::get(config('eideasy.api_url') . '/api/v2/user_data', [
             'access_token' => $accesToken,
         ]);
 
-        return $userData->body();
+        $responseData = $response->json();
+
+        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+            Mail::send([], [], function ($message) use ($responseData) {
+                $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
+                $message->to(env('NOTIFY_EMAIL'))
+                        ->subject("New login from eID Easy demo app")
+                        ->setBody("New user testing the service: " . json_encode($responseData));
+            });
+        }
+
+        return response()->json($responseData);
     }
 }

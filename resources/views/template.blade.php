@@ -20,7 +20,6 @@
             </a>
         </nav>
     </div>
-
     <div class="container">
         @yield('content')
     </div>

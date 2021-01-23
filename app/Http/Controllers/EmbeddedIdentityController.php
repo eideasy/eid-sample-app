@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EmbeddedIdentityController extends Controller
 {
@@ -26,7 +28,18 @@ class EmbeddedIdentityController extends Controller
             'lang'    => $data['lang'] ?? 'en',
         ]);
 
-        return response()->json($response->json(), $response->status());
+        $responseData = $response->json();
+
+        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+            Mail::send([], [], function ($message) use ($responseData) {
+                $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
+                $message->to(env('NOTIFY_EMAIL'))
+                        ->subject("New login")
+                        ->setBody("New user testing the service: " . json_encode($responseData));
+            });
+        }
+
+        return response()->json($responseData);
     }
 
     public function finishMobileidLogin(Request $request)
@@ -63,6 +76,15 @@ class EmbeddedIdentityController extends Controller
             return response()->json([
                 'message' => $responseData->message,
             ], 400);
+        }
+
+        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+            Mail::send([], [], function ($message) use ($responseData) {
+                $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
+                $message->to(env('NOTIFY_EMAIL'))
+                        ->subject("New login from eID Easy demo app")
+                        ->setBody("New user testing the service: " . json_encode($responseData));
+            });
         }
 
         return response()->json($responseData);
@@ -140,6 +162,15 @@ class EmbeddedIdentityController extends Controller
 
         $responseData = json_decode((string)$response->getBody());
         unset($responseData->email);
+
+        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+            Mail::send([], [], function ($message) use ($responseData) {
+                $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
+                $message->to(env('NOTIFY_EMAIL'))
+                        ->subject("New login from eID Easy demo app")
+                        ->setBody("New user testing the service: " . json_encode($responseData));
+            });
+        }
 
         return response()->json($responseData);
     }
