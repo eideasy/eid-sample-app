@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\JsSdkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::post('/js-sdk/authorize', [JsSdkController::class, 'authorizeApiCall']);
+Route::post('/js-sdk/decrypt-user-data', [JsSdkController::class, 'decryptUserData']);
 
 Route::post('/identity/smart-id/start', 'EmbeddedIdentityController@startSmartidLogin');
 Route::post('/identity/smart-id/finish', 'EmbeddedIdentityController@finishSmartidLogin');
