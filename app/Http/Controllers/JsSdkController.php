@@ -10,7 +10,7 @@ class JsSdkController extends Controller
 {
     public function authorizeApiCall(Request $request)
     {
-        $operation = $request->get('operation');
+        $operation = $request->input('operation');
         if ($operation === "login-start") {
             // Examine user phone/idcode and decide if to proceed with asking user to login
         } elseif ($operation === "login-complete") {
@@ -30,15 +30,15 @@ class JsSdkController extends Controller
         $hmac = hash_hmac("SHA256", $data, $secret, true);
         return response()->json([
             'hmac'    => base64_encode($hmac),
-            'payload' => $dataArr
+            'payload' => $data
         ]);
     }
 
     public function decryptUserData(Request $request)
     {
-        $hmac    = $request->get('hmac');
-        $iv      = $request->get('iv');
-        $payload = $request->get('payload');
+        $hmac    = $request->input('hmac');
+        $iv      = $request->input('iv');
+        $payload = $request->input('payload');
 
         $secret = env('EID_SECRET');
 
@@ -53,7 +53,7 @@ class JsSdkController extends Controller
 
         $data = json_decode($decryptedPayloadString);
 
-        $millis      = round($data->timestamp);
+        $millis      = $data->timestamp;
         $requestTime = Carbon::createFromTimestampMs($millis);
         $now         = now();
         if ($requestTime->diffInSeconds($now) > 60) {
