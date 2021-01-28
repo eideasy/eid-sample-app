@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -17,7 +18,7 @@ class JsSdkController extends Controller
         } else {
             // Other operations not supported yet
             Log::error("Invalid operation, to authorizing");
-            abort(403);
+            abort(403, "Invalid operation");
         }
 
         $dataArr              = $request->get('data');
@@ -35,6 +36,34 @@ class JsSdkController extends Controller
 
     public function decryptUserData(Request $request)
     {
+        $hmac    = $request->get('hmac');
+        $iv      = $request->get('iv');
+        $payload = $request->get('payload');
 
+        $secret = env('EID_SECRET');
+
+        $verificationHmac = hash_hmac("SHA256", $payload, $secret, true);
+        $verificationHmac = base64_encode($verificationHmac);
+        if ($verificationHmac !== $hmac) {
+            Log::error("Invalid HMAC $hmac vs $verificationHmac");
+            abort(403, "Invalid HMAC");
+        }
+
+        $decryptedPayloadString = openssl_decrypt($payload, "AES-256-CBC", $secret, 0, base64_decode($iv));
+
+        $data = json_decode($decryptedPayloadString);
+
+        $millis      = round($data->timestamp);
+        $requestTime = Carbon::createFromTimestampMs($millis);
+        $now         = now();
+        if ($requestTime->diffInSeconds($now) > 60) {
+            Log::error("Timestamp expired $requestTime, $now");
+            abort(403, "Expired timestamp, Timestamp $requestTime, now $now");
+        }
+
+        unset($data->timestamp);
+        unset($data->eid_nonce);
+
+        return response()->json($data);
     }
 }

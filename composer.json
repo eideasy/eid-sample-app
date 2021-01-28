@@ -16,7 +16,8 @@
         "fruitcake/laravel-cors": "^1.0",
         "guzzlehttp/guzzle": "^7.0",
         "laravel/framework": "^8.0",
-        "laravel/tinker": "^2.0"
+        "laravel/tinker": "^2.0",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.0",
