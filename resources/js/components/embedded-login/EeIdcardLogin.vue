@@ -43,9 +43,10 @@
                     console.log('Received response for read card', cardReadResponse.data);
                     this.token = cardReadResponse.data.token;
 
-                    let cardVerifyResponse = await axios.post('/api/identity/id-card/finish', {
+                    let cardVerifyResponse = await axios.post('/api/identity/finish', {
                         token: this.token,
                         country: country,
+                        method: 'ee-id-login'
                     });
                     console.log('Card verify completed', cardVerifyResponse);
 

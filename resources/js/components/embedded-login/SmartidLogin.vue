@@ -29,7 +29,7 @@
                      content-class="shadow">
                 Please check your phone and enter Smart-ID PIN1 to continue logging in.
                 <br>
-                Verification code: <strong>{{challenge}}</strong>
+                Verification code: <strong>{{ challenge }}</strong>
             </b-modal>
         </div>
     </div>
@@ -57,16 +57,18 @@
                 this.error = null;
                 this.userData = null;
                 try {
-                    let startResponse = await axios.post('/api/identity/smart-id/start', {
+                    let startResponse = await axios.post('/api/identity/start', {
                         country: this.country,
-                        idcode: this.idcode
+                        idcode: this.idcode,
+                        method: 'smartid'
                     });
 
                     this.challenge = startResponse.data.challenge;
                     this.showModal = true;
 
-                    let finishResponse = await axios.post('/api/identity/smart-id/finish', {
-                        token: startResponse.data.token
+                    let finishResponse = await axios.post('/api/identity/finish', {
+                        token: startResponse.data.token,
+                        method: 'smartid'
                     });
 
                     this.userData = finishResponse.data;

@@ -18,10 +18,5 @@ use App\Http\Controllers\JsSdkController;
 Route::post('/js-sdk/authorize', [JsSdkController::class, 'authorizeApiCall']);
 Route::post('/js-sdk/decrypt-user-data', [JsSdkController::class, 'decryptUserData']);
 
-Route::post('/identity/smart-id/start', 'EmbeddedIdentityController@startSmartidLogin');
-Route::post('/identity/smart-id/finish', 'EmbeddedIdentityController@finishSmartidLogin');
-
-Route::post('/identity/mobile-id/start', 'EmbeddedIdentityController@startMobileidLogin');
-Route::post('/identity/mobile-id/finish', 'EmbeddedIdentityController@finishMobileidLogin');
-
-Route::post('/identity/id-card/finish', 'EmbeddedIdentityController@finishIdcardLogin');
+Route::post('/identity/start', 'EmbeddedIdentityController@startLogin');
+Route::post('/identity/finish', 'EmbeddedIdentityController@finishLogin');

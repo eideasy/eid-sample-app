@@ -27,7 +27,7 @@
                      content-class="shadow">
                 Please check your phone and enter Mobile-ID PIN1 to continue logging in.
                 <br>
-                Verification code: <strong>{{challenge}}</strong>
+                Verification code: <strong>{{ challenge }}</strong>
             </b-modal>
         </div>
     </div>
@@ -42,7 +42,7 @@
     export default {
         data() {
             return {
-                phone: null,
+                phone: "",
                 idcode: null,
                 error: null,
                 showModal: false,
@@ -55,16 +55,18 @@
                 this.error = null;
                 this.userData = null;
                 try {
-                    let startResponse = await axios.post('/api/identity/mobile-id/start', {
+                    let startResponse = await axios.post('/api/identity/start', {
                         phone: this.phone,
-                        idcode: this.idcode
+                        idcode: this.idcode,
+                        method: this.method
                     });
 
                     this.challenge = startResponse.data.challenge;
                     this.showModal = true;
 
-                    let finishResponse = await axios.post('/api/identity/mobile-id/finish', {
-                        token: startResponse.data.token
+                    let finishResponse = await axios.post('/api/identity/finish', {
+                        token: startResponse.data.token,
+                        method: this.method
                     });
 
                     this.userData = finishResponse.data;
@@ -82,6 +84,10 @@
             }
         },
         computed: {
+            method() {
+                const numberStart = this.phone.substring(0, 4);
+                return numberStart === "+370" ? 'lt-mobile-id' : 'mid-login'
+            },
             validPhone() {
                 if (this.phone === null || this.phone.length < 4) {
                     return false;
