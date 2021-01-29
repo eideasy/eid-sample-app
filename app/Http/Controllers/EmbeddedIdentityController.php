@@ -26,6 +26,7 @@ class EmbeddedIdentityController extends Controller
     public function startLogin(Request $request)
     {
         $method = $request->input('method');
+        info("Start login $method");
         if ($method === "smartid") {
             return $this->startSmartIdLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
@@ -38,6 +39,7 @@ class EmbeddedIdentityController extends Controller
     public function finishLogin(Request $request)
     {
         $method = $request->input('method');
+        info("Finishing login $method");
         if ($method === "smartid") {
             return $this->finishSmartIdLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
@@ -143,6 +145,11 @@ class EmbeddedIdentityController extends Controller
 
     protected function notifyLogin($responseData)
     {
+        info("Notifying of new login");
+        if (count($responseData) === 0) {
+            info("Nothing to notify");
+            return;
+        }
         if (env('NOTIFY_EMAIL') && is_array($responseData)) {
             Mail::send([], [], function ($message) use ($responseData) {
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
