@@ -11,7 +11,7 @@
         "php": "^7.2.5",
         "ext-fileinfo": "*",
         "ext-json": "*",
-        "eideasy/eideasy-php": "^1.0",
+        "eideasy/eideasy-php": "dev-master",
         "fideloper/proxy": "^4.2",
         "fruitcake/laravel-cors": "^1.0",
         "guzzlehttp/guzzle": "^7.0",
