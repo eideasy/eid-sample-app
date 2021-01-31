@@ -47,6 +47,12 @@
                 are send out from your application for signature and nobody else has any idea what is being signed
             </label>
         </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="signType" id="create-eseal" value="eseal">
+            <label class="form-check-label" for="create-eseal">
+                Create e-Seal (Sign automatically using configured document signing certificate)
+            </label>
+        </div>
         <br>
 
         <h3>Container type</h3>
@@ -61,7 +67,8 @@
         <div class="form-check">
             <input class="form-check-input" type="radio" name="containerType" id="pdf-selection" value="pdf">
             <label class="form-check-label" for="pdf-selection">
-                Sign PDF. Signature can be verified with Adobe Reader and only one PDF is allowed. Only first uploaded file is used and it must be PDF.
+                Sign PDF. Signature can be verified with Adobe Reader and only one PDF is allowed. Only first uploaded
+                file is used and it must be PDF.
             </label>
         </div>
 

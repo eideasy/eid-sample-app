@@ -20,7 +20,7 @@
     <ul class="list-group">
         <li class="list-group-item"><a href="{{$authorizeUri}}">Login with OAuth 2.0</a></li>
         <li class="list-group-item"><a href="{{url('embedded-identification')}}">Embedded identification</a></li>
-        <li class="list-group-item"><a href="{{url('sign-custom-file')}}">Sign a file</a></li>
+        <li class="list-group-item"><a href="{{url('sign-custom-file')}}">Sign a file or create e-Seal</a></li>
         <li class="list-group-item"><a href="{{url('add-signature-signed-file')}}">Add signature to existing .asice
                 container</a></li>
     </ul>
