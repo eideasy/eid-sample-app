@@ -465,12 +465,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eideasy/eideasy-php.git",
-                "reference": "5040210d959a6e3d062de97271ae51dadb66fc96"
+                "reference": "7a60dd2a7846bcf7eab8848029f8f3282e2d8f0e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/5040210d959a6e3d062de97271ae51dadb66fc96",
-                "reference": "5040210d959a6e3d062de97271ae51dadb66fc96",
+                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/7a60dd2a7846bcf7eab8848029f8f3282e2d8f0e",
+                "reference": "7a60dd2a7846bcf7eab8848029f8f3282e2d8f0e",
                 "shasum": ""
             },
             "require": {
@@ -501,9 +501,9 @@
             "description": "Create ASIC-E digital signature containers and add XAdES signatures to the container. Helper SDK for eID Easy API-s.",
             "support": {
                 "issues": "https://github.com/eideasy/eideasy-php/issues",
-                "source": "https://github.com/eideasy/eideasy-php/tree/v1.3"
+                "source": "https://github.com/eideasy/eideasy-php/tree/master"
             },
-            "time": "2021-01-29T10:40:54+00:00"
+            "time": "2021-01-31T09:39:31+00:00"
         },
         {
             "name": "fideloper/proxy",
