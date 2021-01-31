@@ -53,6 +53,13 @@ class SignLocallyController extends Controller
             'containerType'   => 'required|in:asice,pdf',
         ]);
 
+        // Use sandbox credentials for e-Seals for now
+        if ($request->input('signType') === 'eseal') {
+            $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
+            $this->eidEasyApi->setClientId(env('EID_TEST_CLIENT_ID'));
+            $this->eidEasyApi->setSecret(env('EID_TEST_SECRET'));
+        }
+
 
         $containerType = $request->input('containerType');
         $signType      = $request->input('signType');
@@ -138,6 +145,7 @@ class SignLocallyController extends Controller
         } elseif ($signType === "eseal") {
             $esealResponse = $this->eidEasyApi->createEseal($docId);
             info("Eseal create response:", $esealResponse);
+            Session::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
             Session::put("prepared-files-$fileId", $metaData);
@@ -154,6 +162,13 @@ class SignLocallyController extends Controller
         $docId         = Session::get("doc_id-$fileId");
         $signType      = Session::get("signType-$fileId");
         $containerType = Session::get("containerType-$fileId");
+        $isSandbox     = Session::get("issandbox-$fileId");
+
+        if ($isSandbox) {
+            $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
+            $this->eidEasyApi->setClientId(env('EID_TEST_CLIENT_ID'));
+            $this->eidEasyApi->setSecret(env('EID_TEST_SECRET'));
+        }
 
         $data = $this->eidEasyApi->downloadSignedFile($docId);
 
