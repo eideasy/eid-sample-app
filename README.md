@@ -1,6 +1,6 @@
 ## Usage guide 
 
-First go to the https://id.eideasy.com to register website to get client_id and secret values.
+First go to the https://id.eideasy.com to register website to get client_id and secret values. For testing against sandbox find the credentials from https://eideasy.com/developer-documentation/sandbox/ .
 
 ## Installing
 This Sample app is based on the Laravel framework. See more at https://laravel.com/docs/7.x/installation
