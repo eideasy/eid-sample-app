@@ -180,9 +180,11 @@ class SignLocallyController extends Controller
             $metaData      = Session::get("prepared-files-$fileId");
             $fileName      = $metaData[0]['fileName'];
             $signatureTime = Session::get("pades-signatureTime-$fileId");
+            /** @var array $padesDssData */
+            $padesDssData = $data['pades_dss_data'] ?? null;
 
             $unsignedFile       = Storage::get("/unsigned/$fileId/" . $fileName);
-            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $this->getSampleSignatureParams());
+            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData, $this->getSampleSignatureParams());
             $signedFileContents = base64_decode($padesResponse['signedFile']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $fileName           = "container-$fileId.asice";
