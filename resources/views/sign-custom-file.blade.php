@@ -73,7 +73,7 @@
             <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice"
                    checked>
             <label class="form-check-label" for="asice-selection">
-                Create and .asice container. Very powerful signature type, allows to sign any type of file and multiple
+                Create an .asice container. Very powerful signature type, allows to sign any type of file and multiple
                 files at once.
             </label>
         </div>
