@@ -132,13 +132,13 @@ class SignLocallyController extends Controller
         ];
 
         $signerContacts = [];
-        if ($request->has('simple_email')) {
+        if ($request->has('simple_email') && !empty($request->input('simple_email'))) {
             $signerContacts[] = (object)[
                 'type'  => 'email',
                 'value' => $request->input('simple_email'),
             ];
         }
-        if ($request->has('simple_sms')) {
+        if ($request->has('simple_sms') && !empty($request->input('simple_sms'))) {
             $signerContacts[] = (object)[
                 'type'  => 'sms',
                 'value' => $request->input('simple_sms'),
