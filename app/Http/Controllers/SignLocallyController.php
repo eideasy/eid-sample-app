@@ -98,7 +98,7 @@ class SignLocallyController extends Controller
         $signatureContainer = $containerType;
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
-            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent'], $this->getSampleSignatureParams());
+            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
             if (!isset($padesResponse['digest'])) {
                 Log::error("Pades preparation failed", $padesResponse);
                 return response("Pades preparation failed");
@@ -210,7 +210,7 @@ class SignLocallyController extends Controller
             $padesDssData = $data['pades_dss_data'] ?? null;
 
             $unsignedFile       = Storage::get("/unsigned/$fileId/" . $fileName);
-            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData, $this->getSampleSignatureParams());
+            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData);
             $signedFileContents = base64_decode($padesResponse['signedFile']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $fileName           = "container-$fileId.asice";
