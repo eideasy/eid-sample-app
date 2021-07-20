@@ -22,10 +22,23 @@
             <input name="unsigned_file[]" multiple type="file" class="form-control-file" id="unsigned_file">
         </div>
         <div class="form-group">
-            <label for="redirect_uri-url">Optional: Where to redirect after signing completed</label>
+            <label for="redirect_uri">Optional: Where to redirect after signing completed</label>
             <input name="redirect_uri" type="url" class="form-control" id="redirect_uri">
         </div>
-
+        <div class="row">
+            <div class="form-group col">
+                <label for="simple_email">Optional: E-mail for simple signature</label>
+                <input name="simple_email" type="email" class="form-control" id="simple_email">
+            </div>
+            <div class="form-group col">
+                <label for="simple_sms">Optional: Phone for SMS simple signature</label>
+                <input name="simple_sms" type="text" class="form-control" id="simple_sms">
+            </div>
+        </div>
+        <small>Note on simple signatures: These are legally valid in court but need extra evidence if disputed. You can
+            can connect the signer to the document with e-mail, SMS validation or both. Best to be used for low risk
+            documents where you do not foresee disputes coming. For important documents use only Qualified Electronic Signatures.</small>
+        <br>
         <h3>Signature creation process and integration complexity</h3>
         <div class="form-check">
             <input class="form-check-input" type="radio" name="signType" id="sign-externally" value="external" checked>
@@ -60,7 +73,7 @@
             <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice"
                    checked>
             <label class="form-check-label" for="asice-selection">
-                Create and .asice container. Very powerful signature type, allows to sign any type of file and multiple
+                Create an .asice container. Very powerful signature type, allows to sign any type of file and multiple
                 files at once.
             </label>
         </div>

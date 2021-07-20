@@ -51,6 +51,8 @@ class SignLocallyController extends Controller
             'unsigned_file.*' => 'required|file',
             'signType'        => 'required|in:local,external,digest,eseal',
             'containerType'   => 'required|in:asice,pdf',
+            'simple_email'    => 'nullable|email',
+            'simple_sms'      => ['nullable', 'regex:/^\+\d{7,15}$/'],
         ]);
 
         // Use sandbox credentials for e-Seals for now
@@ -59,7 +61,6 @@ class SignLocallyController extends Controller
             $this->eidEasyApi->setClientId(env('EID_TEST_CLIENT_ID'));
             $this->eidEasyApi->setSecret(env('EID_TEST_SECRET'));
         }
-
 
         $containerType = $request->input('containerType');
         $signType      = $request->input('signType');
@@ -97,7 +98,7 @@ class SignLocallyController extends Controller
         $signatureContainer = $containerType;
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
-            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent'], $this->getSampleSignatureParams());
+            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
             if (!isset($padesResponse['digest'])) {
                 Log::error("Pades preparation failed", $padesResponse);
                 return response("Pades preparation failed");
@@ -120,7 +121,7 @@ class SignLocallyController extends Controller
             }
         }
 
-        $data  = $this->eidEasyApi->prepareFiles($sourceFiles, [
+        $prepareParams = [
             'signature_redirect' => $request->redirect_uri ?? url('/show-download-signed-file') . "?file_id=$fileId",
             'container_type'     => $signatureContainer,
             'files'              => $sourceFiles,
@@ -128,7 +129,32 @@ class SignLocallyController extends Controller
             'notification_state' => [
                 'time' => now()->toIso8601String()
             ],
-        ]);
+        ];
+
+        $signerContacts = [];
+        if ($request->has('simple_email') && !empty($request->input('simple_email'))) {
+            $signerContacts[] = (object)[
+                'type'  => 'email',
+                'value' => $request->input('simple_email'),
+            ];
+        }
+        if ($request->has('simple_sms') && !empty($request->input('simple_sms'))) {
+            $signerContacts[] = (object)[
+                'type'  => 'sms',
+                'value' => $request->input('simple_sms'),
+            ];
+        }
+
+        if (count($signerContacts) > 0) {
+            $prepareParams['signer'] = [
+                'send_now'   => true,
+                'first_name' => 'Firstname',
+                'last_name'  => 'Lastname',
+                'contacts'   => $signerContacts
+            ];
+        }
+
+        $data  = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
         $docId = $data['doc_id'];
 
         // We need to use this later to assemble or get the signed file.
@@ -184,7 +210,7 @@ class SignLocallyController extends Controller
             $padesDssData = $data['pades_dss_data'] ?? null;
 
             $unsignedFile       = Storage::get("/unsigned/$fileId/" . $fileName);
-            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData, $this->getSampleSignatureParams());
+            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData);
             $signedFileContents = base64_decode($padesResponse['signedFile']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $fileName           = "container-$fileId.asice";
