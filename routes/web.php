@@ -19,6 +19,8 @@ Route::get('/', 'HomeController@getWelcome');
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
 Route::get('/embedded-identification', 'SampleViewController@getEmbeddedIdentification');
 
+Route::get('/login-widget', 'SampleViewController@loginWidget');
+
 Route::get('/add-signature-signed-file', 'SampleViewController@signAsiceFile');
 Route::post('/add-signature-signed-file', 'AddSignatureController@startAddingSignature');
 
