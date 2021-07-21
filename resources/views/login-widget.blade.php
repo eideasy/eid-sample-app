@@ -8,11 +8,11 @@
         <div style="margin-top: 20px; margin-bottom: 10px;">
             <label for="langPicker">Language:</label>
             <select name="langPicker" id="langPicker">
-                <option value="en">en</option>
-                <option value="et" selected>et</option>
-                <option value="lv">lv</option>
-                <option value="lt">lt</option>
-                <option value="ru">ru</option>
+                <option value="en" selected>English</option>
+                <option value="et">Estonian</option>
+                <option value="lv">Latvian</option>
+                <option value="lt">Lithuanian</option>
+                <option value="ru">Russian</option>
             </select>
         </div>
 
@@ -29,9 +29,9 @@
       const eidEasyWidget = document.createElement('eideasy-widget');
       const settings = {
         countryCode: 'EE', // ISO 3166  two letter country code
-        language: 'et', // ISO 639-1 two letter language code,
+        language: 'en', // ISO 639-1 two letter language code,
         sandbox: true,
-        clientId: '2IaeiZXbcKzlP1KvjZH9ghty2IJKM8Lg',
+        clientId: '{{ env('EID_CLIENT_ID', '') }}',
         apiEndpoints: {
           identityStart: () => '{{url('/')}}/api/identity/start',
           identityFinish: () => '{{url('/')}}/api/identity/finish',
