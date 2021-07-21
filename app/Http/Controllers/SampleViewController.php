@@ -19,6 +19,11 @@ class SampleViewController extends Controller
         return view('add-signature');
     }
 
+    public function loginWidget()
+    {
+        return view('login-widget');
+    }
+
     public function showDownloadSignedFile(Request $request)
     {
         if ($request->has('file_id')) {
