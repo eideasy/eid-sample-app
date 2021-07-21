@@ -30,7 +30,7 @@
       const settings = {
         countryCode: 'EE', // ISO 3166  two letter country code
         language: 'en', // ISO 639-1 two letter language code,
-        sandbox: true,
+        sandbox:  {{ env('EID_WIDGET_SANDBOX_MODE', 'false') }},
         clientId: '{{ env('EID_CLIENT_ID', '') }}',
         apiEndpoints: {
           identityStart: () => '{{url('/')}}/api/identity/start',
