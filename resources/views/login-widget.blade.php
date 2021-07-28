@@ -20,10 +20,10 @@
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@0.10.0-alpha.5/dist/full/eideasy-widget.umd.js"
-            integrity="sha256-qqncWqLxeTJhyGlIuMqqoDpNiL+mNAzSrPhOClMMpKw="
-            crossorigin="anonymous"
-    ></script>
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.0.0/dist/full/eideasy-widget.umd.js"
+            integrity="sha256-SCQVjajmQa3ZJfT6McXuF1FRK7Kp9t+S2GtIDXsj/HY="
+            crossorigin="anonymous">
+    </script>
     <script>
       const widgetHolder = document.getElementById('widgetHolder');
       const eidEasyWidget = document.createElement('eideasy-widget');
@@ -32,6 +32,7 @@
         language: 'en', // ISO 639-1 two letter language code,
         sandbox:  {{ env('EID_WIDGET_SANDBOX_MODE', 'false') }},
         clientId: '{{ env('EID_CLIENT_ID', '') }}',
+        appUrl: '{{url('/login-widget')}}', // this gets used for redirects e.g. when using eParaksts mobile
         apiEndpoints: {
           identityStart: () => '{{url('/')}}/api/identity/start',
           identityFinish: () => '{{url('/')}}/api/identity/finish',
