@@ -11,11 +11,10 @@ use Illuminate\Support\Facades\Session;
 
 class EmbeddedIdentityController extends Controller
 {
-    protected $eidEasyApi;
+    protected EidEasyApi $eidEasyApi;
 
-    public function __construct()
+    public function __construct(EidEasyApi $api)
     {
-        $api = app(EidEasyApi::class);
         $api->setClientId(env('EID_CLIENT_ID'));
         $api->setSecret(env('EID_SECRET'));
         $api->setApiUrl(env('EID_API_URL'));
@@ -66,6 +65,7 @@ class EmbeddedIdentityController extends Controller
             'country' => 'required',
             'method'  => 'required',
             'lang'    => 'size:2',
+            'timeout' => 'int',
         ]);
 
         $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
@@ -79,18 +79,13 @@ class EmbeddedIdentityController extends Controller
     public function finishMobileidLogin(Request $request)
     {
         $data = $request->validate([
-            'token'  => 'required',
-            'method' => 'required',
-            'lang'   => 'size:2',
+            'token'   => 'required',
+            'method'  => 'required',
+            'lang'    => 'size:2',
+            'timeout' => 'int',
         ]);
 
         $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
-
-        if ($responseData['status'] !== "OK") {
-            return response()->json([
-                'message' => $responseData['message'],
-            ], 400);
-        }
         $this->notifyLogin($responseData);
         unset($responseData['email']);
 
@@ -118,8 +113,9 @@ class EmbeddedIdentityController extends Controller
     public function finishSmartIdLogin(Request $request)
     {
         $data = $request->validate([
-            'token' => 'required',
-            'lang'  => 'size:2',
+            'token'   => 'required',
+            'lang'    => 'size:2',
+            'timeout' => 'int',
         ]);
 
         $responseData = $this->eidEasyApi->completeIdentification('smartid', $data);
