@@ -86,12 +86,6 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
-
-        if ($responseData['status'] !== "OK") {
-            return response()->json([
-                'message' => $responseData['message'],
-            ], 400);
-        }
         $this->notifyLogin($responseData);
         unset($responseData['email']);
 
@@ -156,8 +150,8 @@ class EmbeddedIdentityController extends Controller
             Mail::send([], [], function ($message) use ($responseData) {
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
                 $message->to(env('NOTIFY_EMAIL'))
-                    ->subject("New login from eID Easy demo app")
-                    ->setBody("New user testing the service: " . json_encode($responseData));
+                        ->subject("New login from eID Easy demo app")
+                        ->setBody("New user testing the service: " . json_encode($responseData));
             });
         }
     }

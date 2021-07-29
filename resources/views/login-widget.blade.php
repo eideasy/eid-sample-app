@@ -20,8 +20,8 @@
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.0.0/dist/full/eideasy-widget.umd.js"
-            integrity="sha256-SCQVjajmQa3ZJfT6McXuF1FRK7Kp9t+S2GtIDXsj/HY="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.0.2/dist/full/eideasy-widget.umd.js"
+            integrity="sha256-sExMNXP/jlYazo9YQjJxax0KCQ/hdLfLBxxqQ4MZm4U="
             crossorigin="anonymous">
     </script>
     <script>
