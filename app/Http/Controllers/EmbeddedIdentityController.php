@@ -43,6 +43,8 @@ class EmbeddedIdentityController extends Controller
         info("Finishing login $method");
         if ($method === "smartid") {
             return $this->finishSmartIdLogin($request);
+        } elseif ($method === EidEasyParams::ZEALID_LOGIN) {
+            return $this->finishZealIdLogin($request);
         } elseif ($method === "freja-eid-login") {
             return $this->finishFrejaEidLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
@@ -166,6 +168,19 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         $responseData = $this->eidEasyApi->startIdentification('freja-eid-login', $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishZealIdLogin(Request $request)
+    {
+        $data = $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification(EidEasyParams::ZEALID_LOGIN, $data);
+        unset($responseData['email']);
+        $this->notifyLogin($responseData);
 
         return response()->json($responseData);
     }
