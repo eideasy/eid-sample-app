@@ -28,6 +28,8 @@ class EmbeddedIdentityController extends Controller
         info("Start login $method");
         if ($method === "smartid") {
             return $this->startSmartIdLogin($request);
+        } elseif ($method === "freja-eid-login") {
+            return $this->startFrejaIdLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
             return $this->startMobileidLogin($request);
         }
@@ -41,6 +43,10 @@ class EmbeddedIdentityController extends Controller
         info("Finishing login $method");
         if ($method === "smartid") {
             return $this->finishSmartIdLogin($request);
+        } elseif ($method === EidEasyParams::ZEALID_LOGIN) {
+            return $this->finishZealIdLogin($request);
+        } elseif ($method === "freja-eid-login") {
+            return $this->finishFrejaEidLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
             return $this->finishMobileidLogin($request);
         } elseif (in_array($method, [
@@ -61,10 +67,10 @@ class EmbeddedIdentityController extends Controller
     public function finishIdCardLogin(Request $request)
     {
         $data = $request->validate([
-            'token'   => 'required',
+            'token' => 'required',
             'country' => 'required',
-            'method'  => 'required',
-            'lang'    => 'size:2',
+            'method' => 'required',
+            'lang' => 'size:2',
             'timeout' => 'int',
         ]);
 
@@ -79,9 +85,9 @@ class EmbeddedIdentityController extends Controller
     public function finishMobileidLogin(Request $request)
     {
         $data = $request->validate([
-            'token'   => 'required',
-            'method'  => 'required',
-            'lang'    => 'size:2',
+            'token' => 'required',
+            'method' => 'required',
+            'lang' => 'size:2',
             'timeout' => 'int',
         ]);
 
@@ -96,9 +102,9 @@ class EmbeddedIdentityController extends Controller
     {
         $data = $request->validate([
             'idcode' => 'required|size:11',
-            'phone'  => 'required|min:6|max:15|startsWith:+372,+370',
+            'phone' => 'required|min:6|max:15|startsWith:+372,+370',
             'method' => 'required',
-            'lang'   => 'size:2',
+            'lang' => 'size:2',
         ]);
 
         $responseData = $this->eidEasyApi->startIdentification($data['method'], $data);
@@ -106,15 +112,15 @@ class EmbeddedIdentityController extends Controller
 
         return response()->json([
             'challenge' => $responseData['challenge'],
-            'token'     => $responseData['token'],
+            'token' => $responseData['token'],
         ]);
     }
 
     public function finishSmartIdLogin(Request $request)
     {
         $data = $request->validate([
-            'token'   => 'required',
-            'lang'    => 'size:2',
+            'token' => 'required',
+            'lang' => 'size:2',
             'timeout' => 'int',
         ]);
 
@@ -129,12 +135,52 @@ class EmbeddedIdentityController extends Controller
     {
         $data = $request->validate([
             'country' => 'in:EE,LV,LT',
-            'idcode'  => 'required',
-            'method'  => 'required',
-            'lang'    => 'size:2',
+            'idcode' => 'required',
+            'method' => 'required',
+            'lang' => 'size:2',
         ]);
 
         $responseData = $this->eidEasyApi->startIdentification('smartid', $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishFrejaEidLogin(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required',
+            'lang' => 'size:2',
+            'timeout' => 'int',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification('freja-eid-login', $data);
+        unset($responseData['email']);
+        $this->notifyLogin($responseData);
+
+        return response()->json($responseData);
+    }
+
+    public function startFrejaIdLogin(Request $request)
+    {
+        $data = $request->validate([
+            'idcode' => 'required|min:10|max:20',
+            'country' => 'required|in:NO,SE,DK,FI'
+        ]);
+
+        $responseData = $this->eidEasyApi->startIdentification('freja-eid-login', $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishZealIdLogin(Request $request)
+    {
+        $data = $request->validate([
+            'code' => 'required|string',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification(EidEasyParams::ZEALID_LOGIN, $data);
+        unset($responseData['email']);
+        $this->notifyLogin($responseData);
 
         return response()->json($responseData);
     }
@@ -150,8 +196,8 @@ class EmbeddedIdentityController extends Controller
             Mail::send([], [], function ($message) use ($responseData) {
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
                 $message->to(env('NOTIFY_EMAIL'))
-                        ->subject("New login from eID Easy demo app")
-                        ->setBody("New user testing the service: " . json_encode($responseData));
+                    ->subject("New login from eID Easy demo app")
+                    ->setBody("New user testing the service: " . json_encode($responseData));
             });
         }
     }
