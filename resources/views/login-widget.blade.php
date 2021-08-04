@@ -1,8 +1,8 @@
 @extends('template')
 
 @section('content')
-    <div style="max-width: 450px; margin: 20px auto;">
-        <h1 style="text-align: center">
+    <div style="max-width: 520px; margin: 20px auto;">
+        <h1 style="text-align: center; margin-bottom: 50px">
             Login Widget
         </h1>
         <div style="margin-top: 20px; margin-bottom: 10px;">
@@ -10,6 +10,7 @@
             <select name="langPicker" id="langPicker">
                 <option value="en" selected>English</option>
                 <option value="et">Estonian</option>
+                <option value="de">German</option>
                 <option value="lv">Latvian</option>
                 <option value="lt">Lithuanian</option>
                 <option value="ru">Russian</option>
@@ -18,12 +19,13 @@
 
         <div id="widgetHolder" class="widgetHolder"></div>
     </div>
-    
+
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.1.0/dist/full/eideasy-widget.umd.js"
-            integrity="sha256-UF/tYFJCozS5c7tNiLucvPx7Yrgnh7D/bxAsDekKcPQ="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.2.0/dist/full/eideasy-widget.umd.js"
+            integrity="sha256-FI6fvFjRFu2AL5K0dzyf7W5wjGWBk2JhZ/wZ7uFwags="
             crossorigin="anonymous">
     </script>
+
     <script>
       const widgetHolder = document.getElementById('widgetHolder');
       const eidEasyWidget = document.createElement('eideasy-widget');
