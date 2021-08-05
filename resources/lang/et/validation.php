@@ -12,7 +12,7 @@ return [
     |
     */
 
-    'accepted'             => ':attribute tuleb aktsepteerida. Change #1',
+    'accepted'             => ':attribute tuleb aktsepteerida. Change #2',
     'active_url'           => ':attribute ei ole kehtiv URL.',
     'after'                => ':attribute peab olema kuupäev pärast :date.',
     'after_or_equal'       => ':attribute peab olema kuupäev pärast või samastuma :date.',
