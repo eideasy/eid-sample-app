@@ -40,7 +40,7 @@ return [
     'email'                => 'Lauko :attribute reikšmė turi būti galiojantis el. pašto adresas.',
     'ends_with'            => 'Laukas :attribute turi baigtis vienu iš: :values',
     'exists'               => 'Pasirinkta negaliojanti :attribute reikšmė.',
-    'file'                 => ':attribute turi būti failas.',
+    'file'                 => ':Attribute turi būti failas.',
     'filled'               => 'Laukas :attribute turi būti užpildytas.',
     'gt'                   => [
         'numeric' => 'Lauko :attribute reikšmė turi būti didesnė negu :value.',
@@ -142,5 +142,8 @@ return [
     |
     */
     'attributes'           => [
+        'idcode'  => 'asmens kodas',
+        'phone'   => 'telefono numeris',
+        'country' => 'šalis',
     ],
 ];
