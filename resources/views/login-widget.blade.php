@@ -21,8 +21,8 @@
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.2.0/dist/full/eideasy-widget.umd.js"
-            integrity="sha256-FI6fvFjRFu2AL5K0dzyf7W5wjGWBk2JhZ/wZ7uFwags="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.4.0/dist/full/eideasy-widget.umd.js"
+            integrity="sha256-f4GinkExPgFHV1WgvnkyirmlS1FdaRBq9lwAatfgRJw="
             crossorigin="anonymous">
     </script>
 
