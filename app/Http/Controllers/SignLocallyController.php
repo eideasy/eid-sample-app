@@ -129,6 +129,7 @@ class SignLocallyController extends Controller
             'notification_state' => [
                 'time' => now()->toIso8601String()
             ],
+            'show_visual'        => true,
         ];
 
         $signerContacts = [];
