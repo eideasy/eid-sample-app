@@ -46,13 +46,15 @@ class SignLocallyController extends Controller
     public function startSignCustomFile(Request $request)
     {
         $request->validate([
-            'redirect_uri'    => 'nullable|url',
-            'unsigned_file'   => 'required|array',
-            'unsigned_file.*' => 'required|file',
-            'signType'        => 'required|in:local,external,digest,eseal',
-            'containerType'   => 'required|in:asice,pdf',
-            'simple_email'    => 'nullable|email',
-            'simple_sms'      => ['nullable', 'regex:/^\+\d{7,15}$/'],
+            'redirect_uri'     => 'nullable|url',
+            'unsigned_file'    => 'required|array',
+            'unsigned_file.*'  => 'required|file',
+            'signType'         => 'required|in:local,external,digest,eseal',
+            'containerType'    => 'required|in:asice,pdf',
+            'simple_firstname' => 'nullable|string|max:255',
+            'simple_lastname'  => 'nullable|string|max:255',
+            'simple_email'     => 'nullable|email',
+            'simple_sms'       => ['nullable', 'regex:/^\+\d{7,15}$/'],
         ]);
 
         // Use sandbox credentials for e-Seals for now
@@ -149,8 +151,8 @@ class SignLocallyController extends Controller
         if (count($signerContacts) > 0) {
             $prepareParams['signer'] = [
                 'send_now'   => true,
-                'first_name' => 'Firstname',
-                'last_name'  => 'Lastname',
+                'first_name' => $request->input('simple_firstname'),
+                'last_name'  => $request->input('simple_lastname'),
                 'contacts'   => $signerContacts
             ];
         }

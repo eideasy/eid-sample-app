@@ -26,13 +26,23 @@
             <input name="redirect_uri" type="url" class="form-control" id="redirect_uri">
         </div>
         <div class="row">
-            <div class="form-group col">
+            <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_email">Optional: E-mail for simple signature</label>
                 <input name="simple_email" type="email" class="form-control" id="simple_email">
             </div>
-            <div class="form-group col">
+            <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_sms">Optional: Phone for SMS simple signature</label>
                 <input name="simple_sms" type="text" class="form-control" id="simple_sms">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6 col-sm-12">
+                <label for="simple_firstname">Optional: Firstname (unverified)</label>
+                <input name="simple_firstname" type="text" class="form-control" id="simple_firstname">
+            </div>
+            <div class="form-group col-md-6 col-sm-12">
+                <label for="simple_lastame">Optional: Lastname (unverified)</label>
+                <input name="simple_lastname" type="text" class="form-control" id="simple_lastname">
             </div>
         </div>
         <small>Note on simple signatures: These are legally valid in court but need extra evidence if disputed. You can
