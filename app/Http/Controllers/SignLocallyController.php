@@ -91,9 +91,6 @@ class SignLocallyController extends Controller
                 'mimeType'    => $mimeType,
                 'fileContent' => base64_encode(hash('sha256', $fileContent, true))
             ];
-            if ($containerType === "pdf") {
-                break;
-            }
         }
 
         // Handle digest based signature starting.
@@ -158,6 +155,14 @@ class SignLocallyController extends Controller
         }
 
         $data  = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
+        if (isset($data['status']) && $data['status'] !== "OK") {
+            if (isset($data['message']) && !empty($data['message'])) {
+                session()->flash('message', $data['message']);
+                session()->flash('alert-class', 'alert-danger');
+
+                return redirect()->back();
+            }
+        }
         $docId = $data['doc_id'];
 
         // We need to use this later to assemble or get the signed file.
