@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JsSdkController;
 
@@ -20,3 +19,5 @@ Route::post('/js-sdk/decrypt-user-data', [JsSdkController::class, 'decryptUserDa
 
 Route::post('/identity/start', 'EmbeddedIdentityController@startLogin');
 Route::post('/identity/finish', 'EmbeddedIdentityController@finishLogin');
+
+Route::post('/test/custom-cades-digest', 'TestController@customCadesDigest');
