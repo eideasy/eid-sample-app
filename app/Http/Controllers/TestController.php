@@ -7,6 +7,7 @@ use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,16 +35,13 @@ class TestController extends Controller
     public function customCadesDigest(Request $request)
     {
         $docId = $request->get('doc_id');
-        $fileId = Session::get("file_id-$docId");
-        $metadata = Session::get("prepared-files-$fileId", []);
+        $metadata = Cache::get("prepared-files-$docId", []);
 
         if (empty($metadata)) {
             return response()->json([
                 [
                     "message" => "Missing signed file contents",
                     "doc_id" => $docId,
-                    "fileId" => $fileId,
-                    "metadata" => $metadata,
                 ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
@@ -56,16 +54,19 @@ class TestController extends Controller
             $signerIdCode
         );
 
-        $padesResponse = $this->pades->getPadesDigest($metadata, $signatureParameters);
+        $padesResponse = $this->pades->getPadesDigest($metadata[0]['fileContent']);
 
         if (!isset($padesResponse['digest'])) {
             return response()->json([
-                ["message" => "Missing digest",],
+                [
+                    "message" => "Missing digest",
+                    "response" => json_encode($padesResponse),
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         return response()->json([
             'digest' => $padesResponse['digest'],
-        ]);
+        ], Response::HTTP_OK);
     }
 }

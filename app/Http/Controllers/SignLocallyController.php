@@ -8,6 +8,7 @@ use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
@@ -182,6 +183,7 @@ class SignLocallyController extends Controller
             Session::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
+            Cache::put("prepared-files-$docId", $sourceFiles);
             Session::put("prepared-files-$fileId", $metaData);
             return redirect()->to("/sign-locally-sample?doc_id=$docId");
         }

@@ -19,5 +19,3 @@ Route::post('/js-sdk/decrypt-user-data', [JsSdkController::class, 'decryptUserDa
 
 Route::post('/identity/start', 'EmbeddedIdentityController@startLogin');
 Route::post('/identity/finish', 'EmbeddedIdentityController@finishLogin');
-
-Route::post('/test/custom-cades-digest', 'TestController@customCadesDigest');
