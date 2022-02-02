@@ -104,6 +104,7 @@ class SignLocallyController extends Controller
                 return response("Pades preparation failed");
             }
             $metaData[0]['fileContent'] = $padesResponse['digest']; // Modified PDF digest will be signed.
+            $sourceFilesCache = $sourceFiles;
             Session::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
 
         } elseif ($signType === "digest" && $containerType === "asice") {
@@ -183,7 +184,7 @@ class SignLocallyController extends Controller
             Session::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
-            Cache::put("prepared-files-$docId", $sourceFiles);
+            Cache::put("prepared-files-$docId", $sourceFilesCache);
             Session::put("prepared-files-$fileId", $metaData);
             return redirect()->to("/sign-locally-sample?doc_id=$docId");
         }

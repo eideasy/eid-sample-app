@@ -8,7 +8,6 @@ use EidEasy\Signatures\SignatureParameters;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 class TestController extends Controller
@@ -56,7 +55,7 @@ class TestController extends Controller
 
         $padesResponse = $this->pades->getPadesDigest($metadata[0]['fileContent']);
 
-        if (!isset($padesResponse['digest'])) {
+        if (!isset($padesResponse['hexDigest'])) {
             return response()->json([
                 [
                     "message" => "Missing digest",
@@ -66,7 +65,7 @@ class TestController extends Controller
         }
 
         return response()->json([
-            'digest' => $padesResponse['digest'],
+            "digest" => $padesResponse['hexDigest']
         ], Response::HTTP_OK);
     }
 }
