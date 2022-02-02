@@ -30,3 +30,5 @@ Route::post('/sign-custom-file', 'SignLocallyController@startSignCustomFile');
 Route::get('/download-unsigned-file', 'SignLocallyController@downloadUnSignedFile');
 Route::get('/show-download-signed-file', 'SampleViewController@showDownloadSignedFile');
 Route::get('/download-signed-file', 'SignLocallyController@downloadSignedFile');
+
+Route::post('/test/custom-cades-digest', 'TestController@customCadesDigest');
