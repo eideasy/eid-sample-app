@@ -79,6 +79,13 @@
                 Create e-Seal (Sign automatically using configured document signing certificate)
             </label>
         </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="signType" id="multisign" value="multisign">
+            <label class="form-check-label" for="multisign">
+                Request signatures from multiple people. You will be redirected to a page where you can enter the
+                names and email addresses of all the signers.
+            </label>
+        </div>
         <br>
 
         <h3>Container type</h3>
