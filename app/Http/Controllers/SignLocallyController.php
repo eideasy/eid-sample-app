@@ -20,9 +20,8 @@ class SignLocallyController extends Controller
     protected $client;
     protected $eidEasyApi;
     protected $pades;
-    protected $eidEasyExtendedApi;
 
-    public function __construct(Client $client, EidEasyApi $eidEasyApi, Pades $pades, EidEasyExtendedApi $eidEasyExtendedApi)
+    public function __construct(Client $client, EidEasyApi $eidEasyApi, Pades $pades)
     {
         $this->client = $client;
 
@@ -35,13 +34,6 @@ class SignLocallyController extends Controller
         $pades->setGuzzle($client);
         $pades->setApiUrl(config('eideasy.pades_api_uri'));
         $this->pades = $pades;
-
-        // TODO: remove eidEasyExtendedApi once the multisigning calls are in the core eidEasyApi library
-        $eidEasyExtendedApi->setGuzzle($client);
-        $eidEasyExtendedApi->setApiUrl(config('eideasy.api_url'));
-        $eidEasyExtendedApi->setClientId(config('eideasy.client_id'));
-        $eidEasyExtendedApi->setSecret(config('eideasy.secret'));
-        $this->eidEasyExtendedApi = $eidEasyExtendedApi;
     }
 
     public function downloadUnSignedFile(Request $request)
@@ -187,7 +179,7 @@ class SignLocallyController extends Controller
         if ($signType === "external") {
             return redirect()->to(config('eideasy.api_url') . "/sign_contract_external?client_id=$clientId&doc_id=$docId");
         } elseif ($signType === 'multisign') {
-            $response = $this->eidEasyExtendedApi->createSigningQueue(config('eideasy.client_id'), config('eideasy.secret'), $docId);
+            $response = $this->eidEasyApi->createSigningQueue($docId, ['has_management_page' => true]);
 
             return redirect()->to($response["management_page_url"]);
         } elseif ($signType === "eseal") {
