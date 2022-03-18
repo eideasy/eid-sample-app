@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ac4020a96b55eec3415d18a06b0ca654",
+    "content-hash": "c52499c8781d7b68990f563ba53b5c60",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -499,16 +499,16 @@
         },
         {
             "name": "eideasy/eideasy-php",
-            "version": "dev-master",
+            "version": "v1.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eideasy/eideasy-php.git",
-                "reference": "a0925daf265984b24c1340c44a06911692fa0d69"
+                "reference": "b5064bb52b77d6db4703dc5afa0ae2dbde67a391"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/a0925daf265984b24c1340c44a06911692fa0d69",
-                "reference": "a0925daf265984b24c1340c44a06911692fa0d69",
+                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/b5064bb52b77d6db4703dc5afa0ae2dbde67a391",
+                "reference": "b5064bb52b77d6db4703dc5afa0ae2dbde67a391",
                 "shasum": ""
             },
             "require": {
@@ -519,7 +519,6 @@
                 "guzzlehttp/guzzle": "*",
                 "php": "^7.0|^8.0"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -539,9 +538,9 @@
             "description": "Create ASIC-E digital signature containers and add XAdES signatures to the container. Helper SDK for eID Easy API-s.",
             "support": {
                 "issues": "https://github.com/eideasy/eideasy-php/issues",
-                "source": "https://github.com/eideasy/eideasy-php/tree/v1.15"
+                "source": "https://github.com/eideasy/eideasy-php/tree/v1.18"
             },
-            "time": "2021-12-29T17:25:44+00:00"
+            "time": "2022-03-17T09:19:09+00:00"
         },
         {
             "name": "fideloper/proxy",
@@ -7604,9 +7603,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "eideasy/eideasy-php": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -7616,5 +7613,5 @@
         "ext-openssl": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.1.0"
 }

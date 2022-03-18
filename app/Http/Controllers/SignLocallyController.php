@@ -50,7 +50,7 @@ class SignLocallyController extends Controller
             'redirect_uri'     => 'nullable|url',
             'unsigned_file'    => 'required|array',
             'unsigned_file.*'  => 'required|file',
-            'signType'         => 'required|in:local,external,digest,eseal',
+            'signType'         => 'required|in:local,external,digest,eseal,multisign',
             'containerType'    => 'required|in:asice,pdf',
             'simple_firstname' => 'nullable|string|max:255',
             'simple_lastname'  => 'nullable|string|max:255',
@@ -178,6 +178,10 @@ class SignLocallyController extends Controller
         $clientId = config('eideasy.client_id');
         if ($signType === "external") {
             return redirect()->to(config('eideasy.api_url') . "/sign_contract_external?client_id=$clientId&doc_id=$docId");
+        } elseif ($signType === 'multisign') {
+            $response = $this->eidEasyApi->createSigningQueue($docId, ['has_management_page' => true]);
+
+            return redirect()->to($response["management_page_url"]);
         } elseif ($signType === "eseal") {
             $esealResponse = $this->eidEasyApi->createEseal($docId);
             info("Eseal create response:", $esealResponse);
