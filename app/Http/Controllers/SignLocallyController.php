@@ -51,6 +51,9 @@ class SignLocallyController extends Controller
             'unsigned_file'    => 'required|array',
             'unsigned_file.*'  => 'required|file',
             'signType'         => 'required|in:local,external,digest,eseal,multisign',
+            'pdf_x'            => 'nullable|min:0',
+            'pdf_y'            => 'nullable|min:0',
+            'pdf_page'         => 'nullable|min:0',
             'containerType'    => 'required|in:asice,pdf',
             'simple_firstname' => 'nullable|string|max:255',
             'simple_lastname'  => 'nullable|string|max:255',
@@ -104,9 +107,8 @@ class SignLocallyController extends Controller
                 return response("Pades preparation failed");
             }
             $metaData[0]['fileContent'] = $padesResponse['digest']; // Modified PDF digest will be signed.
-            $sourceFilesCache = $sourceFiles;
+            $sourceFilesCache           = $sourceFiles;
             Session::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
-
         } elseif ($signType === "digest" && $containerType === "asice") {
             $signatureContainer = 'xades';
             $asice              = new Asice();
@@ -130,7 +132,7 @@ class SignLocallyController extends Controller
             'notification_state' => [
                 'time' => now()->toIso8601String()
             ],
-            'show_visual'        => true,
+            'show_visual'        => !$request->boolean('hide_pdf_visual'),
         ];
 
         $signerContacts = [];
@@ -147,6 +149,14 @@ class SignLocallyController extends Controller
             ];
         }
 
+        if ($request->has('pdf_x') || $request->has('pdf_y') || $request->has('pdf_page')) {
+            $prepareParams['visual_coordinates'] = (object)[
+                'page' => $request->get('pdf_page'),
+                'x'    => $request->get('pdf_x'),
+                'y'    => $request->get('pdf_y'),
+            ];
+        }
+
         if (count($signerContacts) > 0) {
             $prepareParams['signer'] = [
                 'send_now'   => true,
@@ -156,7 +166,7 @@ class SignLocallyController extends Controller
             ];
         }
 
-        $data  = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
+        $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
         if (isset($data['status']) && $data['status'] !== "OK") {
             if (isset($data['message']) && !empty($data['message'])) {
                 session()->flash('message', $data['message']);

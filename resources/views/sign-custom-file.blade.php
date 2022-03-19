@@ -48,9 +48,30 @@
                 <input name="simple_lastname" type="text" class="form-control" id="simple_lastname">
             </div>
         </div>
+        <div class="row">
+            <div class="form-group col-md-4 col-sm-12">
+                <label for="pdf_x">Optional: PDF visual X coordinate (A4 max 595)</label>
+                <input name="pdf_x" type="number" class="form-control" id="pdf_x">
+            </div>
+            <div class="form-group col-md-4 col-sm-12">
+                <label for="pdf_y">Optional: PDF visual Y coordinate (A4 max 842)</label>
+                <input name="pdf_y" type="text" class="form-control" id="pdf_y">
+            </div>
+            <div class="form-group col-md-4 col-sm-12">
+                <label for="pdf_page">Optional: PDF page number</label>
+                <input name="pdf_page" type="text" class="form-control" id="pdf_page">
+            </div>
+        </div>
+        <div class="form-group form-check col-md-3">
+            <input class="form-check-input" type="checkbox" name="hide_pdf_visual" id="sign-locally">
+            <label class="form-check-label" for="hide_pdf_visual">
+                Hide PDF visual signature
+            </label>
+        </div>
         <small>Note on simple signatures: These are legally valid in court but need extra evidence if disputed. You can
             can connect the signer to the document with e-mail, SMS validation or both. Best to be used for low risk
-            documents where you do not foresee disputes coming. For important documents use only Qualified Electronic Signatures.</small>
+            documents where you do not foresee disputes coming. For important documents use only Qualified Electronic
+            Signatures.</small>
         <br>
         <h3>Signature creation process and integration complexity</h3>
         <div class="form-check">
