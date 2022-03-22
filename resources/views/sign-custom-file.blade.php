@@ -58,7 +58,7 @@
                 <input name="pdf_y" type="text" class="form-control" id="pdf_y">
             </div>
             <div class="form-group col-md-4 col-sm-12">
-                <label for="pdf_page">Optional: PDF page number</label>
+                <label for="pdf_page">Optional: PDF page number (first page is 0)</label>
                 <input name="pdf_page" type="text" class="form-control" id="pdf_page">
             </div>
         </div>
