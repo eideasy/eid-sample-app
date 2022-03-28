@@ -99,6 +99,7 @@ class SignLocallyController extends Controller
 
         // Handle digest based signature starting.
         $signatureContainer = $containerType;
+        $sourceFilesCache = null;
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
             $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
@@ -198,7 +199,7 @@ class SignLocallyController extends Controller
             Session::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
-            Cache::put("prepared-files-$docId", $sourceFilesCache ?? null);
+            Cache::put("prepared-files-$docId", $sourceFilesCache);
             Session::put("prepared-files-$fileId", $metaData);
             return redirect()->to("/sign-locally-sample?doc_id=$docId");
         }
