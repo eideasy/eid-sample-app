@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -109,7 +108,7 @@ class SignLocallyController extends Controller
             }
             $metaData[0]['fileContent'] = $padesResponse['digest']; // Modified PDF digest will be signed.
             $sourceFilesCache           = $sourceFiles;
-            Session::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
+            Cache::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $signatureContainer = 'xades';
             $asice              = new Asice();
@@ -179,10 +178,10 @@ class SignLocallyController extends Controller
         $docId = $data['doc_id'];
 
         // We need to use this later to assemble or get the signed file.
-        Session::put("doc_id-$fileId", $docId);
-        Session::put("file_id-$docId", $fileId);
-        Session::put("signType-$fileId", $signType);
-        Session::put("containerType-$fileId", $containerType);
+        Cache::put("doc_id-$fileId", $docId);
+        Cache::put("file_id-$docId", $fileId);
+        Cache::put("signType-$fileId", $signType);
+        Cache::put("containerType-$fileId", $containerType);
 
         info("File prepared for signing file_id=$fileId, doc_id=$docId");
 
@@ -196,11 +195,10 @@ class SignLocallyController extends Controller
         } elseif ($signType === "eseal") {
             $esealResponse = $this->eidEasyApi->createEseal($docId);
             info("Eseal create response:", $esealResponse);
-            Session::put("issandbox-$fileId", true);
+            Cache::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
-            Cache::put("prepared-files-$docId", $sourceFilesCache);
-            Session::put("prepared-files-$fileId", $metaData);
+            Cache::put("prepared-files-$fileId", $metaData);
             return redirect()->to("/sign-locally-sample?doc_id=$docId");
         }
     }
@@ -211,10 +209,10 @@ class SignLocallyController extends Controller
 
         $fileId = $request->input("file_id");
 
-        $docId         = Session::get("doc_id-$fileId");
-        $signType      = Session::get("signType-$fileId");
-        $containerType = Session::get("containerType-$fileId");
-        $isSandbox     = Session::get("issandbox-$fileId");
+        $docId         = Cache::get("doc_id-$fileId");
+        $signType      = Cache::get("signType-$fileId");
+        $containerType = Cache::get("containerType-$fileId");
+        $isSandbox     = Cache::get("issandbox-$fileId");
 
         if ($isSandbox) {
             $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
@@ -229,9 +227,9 @@ class SignLocallyController extends Controller
 
         // Assemble signed file and make sure its in binary form before downloading.
         if ($signType === "digest" && $containerType === "pdf") {
-            $metaData      = Session::get("prepared-files-$fileId");
+            $metaData      = Cache::get("prepared-files-$fileId");
             $fileName      = $metaData[0]['fileName'];
-            $signatureTime = Session::get("pades-signatureTime-$fileId");
+            $signatureTime = Cache::get("pades-signatureTime-$fileId");
             /** @var array $padesDssData */
             $padesDssData = $data['pades_dss_data'] ?? null;
 
