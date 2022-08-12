@@ -19,7 +19,7 @@
         {{csrf_field()}}
         <div class="form-group">
             <label for="signed_file">.asice container in Xades format where to add signature</label>
-            <input name="signed_file" type="file" class="form-control-file" id="signed_file">
+            <input name="signed_file" type="file" class="form-control-file" id="signed_file" accept=".asice">
         </div>
         <div class="form-group">
             <label for="redirect_uri">Optional: Where to redirect after signing completed</label>
