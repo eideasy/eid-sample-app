@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
@@ -29,7 +29,7 @@ class SampleViewController extends Controller
         if ($request->has('file_id')) {
             $fileId = $request->input('file_id');
         } else {
-            $fileId = Session::get("file_id-$request->doc_id");
+            $fileId = Cache::get("file_id-$request->doc_id");
         }
 
         return view('download-signed-file', ['fileId' => $fileId]);
@@ -42,8 +42,8 @@ class SampleViewController extends Controller
 
     public function signLocallySample(Request $request)
     {
-        $fileId = Session::get("file_id-$request->doc_id");
-        $metadata = Session::get("prepared-files-$fileId", []);
+        $fileId = Cache::get("file_id-$request->doc_id");
+        $metadata = Cache::get("prepared-files-$fileId", []);
         $files = [];
         foreach ($metadata as $meta) {
             $file = $meta;
