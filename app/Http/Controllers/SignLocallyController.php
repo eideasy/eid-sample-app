@@ -219,7 +219,7 @@ class SignLocallyController extends Controller
                 Cache::get("signing_queue_secret_$signingQueueId")
             );
 
-            $docId = collect($response['signers'])
+            $docId = collect($response['signers'] ?? [])
                     ->whereNotNull('doc_id')
                     ->whereNotNull('signed_at')
                     ->sortByDesc('signed_at')
