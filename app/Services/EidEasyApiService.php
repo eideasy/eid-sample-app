@@ -26,11 +26,6 @@ class EidEasyApiService extends EidEasyApi
     public function getSigningQueue(int $signingQueueId, string $signingQueueSecret): array
     {
         $call = function () use ($signingQueueSecret, $signingQueueId) {
-//            $data = [
-//                'client_id' => $this->clientId,
-//                'secret'    => $this->secret,
-//            ];
-
             return $this->guzzle->get($this->apiUrl . "/api/signatures/signing-queues/$signingQueueId", [
                 'headers' => [
                     'Accept' => 'application/json',
