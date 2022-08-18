@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use EidEasy\Api\EidEasyApi;
+use App\Services\EidEasyApiService;
 use EidEasy\Signatures\Asice;
 use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
@@ -20,15 +20,13 @@ class SignLocallyController extends Controller
     protected $eidEasyApi;
     protected $pades;
 
-    public function __construct(Client $client, EidEasyApi $eidEasyApi, Pades $pades)
+    public function __construct(Client $client, Pades $pades)
     {
         $this->client = $client;
 
-        $eidEasyApi->setGuzzle($client);
-        $eidEasyApi->setApiUrl(config('eideasy.api_url'));
-        $eidEasyApi->setClientId(config('eideasy.client_id'));
-        $eidEasyApi->setSecret(config('eideasy.secret'));
-        $this->eidEasyApi = $eidEasyApi;
+        $this->eidEasyApi = new EidEasyApiService(
+            $client, config('eideasy.client_id'), config('eideasy.secret'), config('eideasy.api_url')
+        );
 
         $pades->setGuzzle($client);
         $pades->setApiUrl(config('eideasy.pades_api_uri'));
@@ -189,6 +187,8 @@ class SignLocallyController extends Controller
             return redirect()->to(config('eideasy.api_url') . "/sign_contract_external?client_id=$clientId&doc_id=$docId");
         } elseif ($signType === 'multisign') {
             $response = $this->eidEasyApi->createSigningQueue($docId, ['has_management_page' => true]);
+            Cache::put("signing_queue_id_$fileId", $response['id']);
+            Cache::put('signing_queue_secret_'. $response['id'], $response['signing_queue_secret']);
 
             return redirect()->to($response["management_page_url"]);
         } elseif ($signType === "eseal") {
@@ -212,6 +212,19 @@ class SignLocallyController extends Controller
         $signType      = Cache::get("signType-$fileId");
         $containerType = Cache::get("containerType-$fileId");
         $isSandbox     = Cache::get("issandbox-$fileId");
+
+        if ($signingQueueId = Cache::get("signing_queue_id_$fileId")) {
+            $response = $this->eidEasyApi->getSigningQueue(
+                $signingQueueId,
+                Cache::get("signing_queue_secret_$signingQueueId")
+            );
+
+            $docId = collect($response['signers'] ?? [])
+                    ->whereNotNull('doc_id')
+                    ->whereNotNull('signed_at')
+                    ->sortByDesc('signed_at')
+                    ->first()['doc_id'] ?? $docId;
+        }
 
         if ($isSandbox) {
             $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
