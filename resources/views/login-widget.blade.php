@@ -1,3 +1,7 @@
+<?php
+$widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
+?>
+
 @extends('template')
 
 @section('content')
@@ -21,8 +25,8 @@
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@1.4.0/dist/full/eideasy-widget.umd.js"
-            integrity="sha256-f4GinkExPgFHV1WgvnkyirmlS1FdaRBq9lwAatfgRJw="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@2.39.0/dist/full/eideasy-widget.umd.min.js"
+            integrity="sha256-YrLbyu8vmrjOaPjBh5IbJcj55oy1kXHxBp1QF7u0gzA="
             crossorigin="anonymous">
     </script>
 
@@ -32,12 +36,13 @@
       const settings = {
         countryCode: 'EE', // ISO 3166  two letter country code
         language: 'en', // ISO 639-1 two letter language code,
-        sandbox:  {{ env('EID_WIDGET_SANDBOX_MODE', 'false') }},
+        sandbox: {{ $widgetSandbox }},
         clientId: '{{ env('EID_CLIENT_ID', '') }}',
-        appUrl: '{{ env('EID_WIDGET_REDIRECT_URL', url('/')) }}', // this gets used for redirects e.g. when using eParaksts mobile
+        redirectUri: '{{ env('EID_WIDGET_REDIRECT_URL', url('/')) }}', // this gets used for redirects e.g. when using eParaksts mobile
         apiEndpoints: {
           identityStart: () => '{{url('/')}}/api/identity/start',
           identityFinish: () => '{{url('/')}}/api/identity/finish',
+          base: () => '{{ config('eideasy.api_url') }}',
         },
         enabledMethods: {
           identification: 'all',
@@ -49,6 +54,7 @@
         onFail: function(error) {
           console.log(error);
         },
+        oauthParamState: 'custom-state-value-eid-sample-app',
       }
 
       Object.keys(settings).forEach(key => {
