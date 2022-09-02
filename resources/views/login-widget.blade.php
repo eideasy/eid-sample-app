@@ -25,8 +25,8 @@ $widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@2.39.0/dist/full/eideasy-widget.umd.min.js"
-            integrity="sha256-YrLbyu8vmrjOaPjBh5IbJcj55oy1kXHxBp1QF7u0gzA="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@2.41.0/dist/full/eideasy-widget.umd.min.js"
+            integrity="sha256-0BlRkToFOZ+8sUmg513to02eaM9sS6pkOsHaD7bLdJo="
             crossorigin="anonymous">
     </script>
 
