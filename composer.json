@@ -14,6 +14,7 @@
         "ext-openssl": "*",
         "eideasy/eideasy-php": "^1.18",
         "fideloper/proxy": "^4.2",
+        "firebase/php-jwt": "^6.3",
         "fruitcake/laravel-cors": "^1.0",
         "guzzlehttp/guzzle": "^7.0",
         "laravel/framework": "^8.0",
