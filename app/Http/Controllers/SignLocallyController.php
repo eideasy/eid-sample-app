@@ -178,7 +178,7 @@ class SignLocallyController extends Controller
             ], hash('sha256', config('eideasy.secret'), true), 'HS256');
 
             $apiUrl = config('eideasy.api_url');
-            $redirectBackUri = config('eideasy.redirect_uri');
+            $redirectBackUri = config('eideasy.redirect_uri') . '/csc-credential';
             $parameters = [
                 'scope'         => 'service',
                 'response_type' => 'code',

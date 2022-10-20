@@ -32,3 +32,6 @@ Route::get('/show-download-signed-file', 'SampleViewController@showDownloadSigne
 Route::get('/download-signed-file', 'SignLocallyController@downloadSignedFile');
 
 Route::post('/test/custom-cades-digest', 'TestController@customCadesDigest');
+
+Route::get('/csc-credential', [\App\Http\Controllers\CscApiController::class, 'credential']);
+Route::get('/csc-signature', [\App\Http\Controllers\CscApiController::class, 'credential']);
