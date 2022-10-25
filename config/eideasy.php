@@ -7,4 +7,5 @@ return [
     'card_domain'   => env('EID_CARD_DOMAIN', '.test.eideasy.localhost'),
     'redirect_uri'  => env('EID_REDIRECT_URI', 'http://eideasy-test.localhost'),
     'pades_api_uri' => env('EID_PADES_API_URL', 'https://detached-pdf.eideasy.com'),
+    'adobe_account_id' => env('ADOBE_ACCOUNT_ID', 'dummy'),
 ];

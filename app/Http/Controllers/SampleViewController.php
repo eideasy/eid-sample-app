@@ -52,4 +52,9 @@ class SampleViewController extends Controller
         }
         return view('sign-locally-sample', ['doc_id' => $request->doc_id, 'files' => $files]);
     }
+
+    public function signViaCscApiView()
+    {
+        return view('sign-via-csc-api');
+    }
 }

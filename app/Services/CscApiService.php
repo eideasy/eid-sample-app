@@ -27,13 +27,12 @@ class CscApiService extends EidEasyApi
 
     public function createAccountToken() {
         $tokenId = md5($this->clientId . ':' . Str::random() . ':' . round(microtime(true) * 1000));
-        $adobeAccountId = '123456abcde';
 
         $accountToken = JWT::encode([
-            'sub' => $adobeAccountId,
+            'sub' => config('eideasy.adobe_account_id'),
             'iat' => time(),
             'jti' => $tokenId,
-            'iss' => 'ThisShouldBeSignatureApplicationName',
+            'iss' => 'eid-sample-app',
             'azp' => $this->clientId,
         ], hash('sha256', config('eideasy.secret'), true), 'HS256');
 

@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CscApiController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\SampleViewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,5 +35,8 @@ Route::get('/download-signed-file', 'SignLocallyController@downloadSignedFile');
 
 Route::post('/test/custom-cades-digest', 'TestController@customCadesDigest');
 
-Route::get('/csc-credential', [\App\Http\Controllers\CscApiController::class, 'credential']);
-Route::get('/csc-signature', [\App\Http\Controllers\CscApiController::class, 'signature']);
+Route::get('/sign-via-csc-api', [SampleViewController::class, 'signViaCscApiView']);
+Route::post('/sign-via-csc-api', [CscApiController::class, 'startCscApiSignature']);
+Route::get('/csc-service-return', [CscApiController::class, 'credential']);
+Route::get('/csc-signature', [CscApiController::class, 'signature']);
+Route::get('/download-csc-api-signed-file', [CscApiController::class, 'downloadSignedFile']);

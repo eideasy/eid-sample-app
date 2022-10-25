@@ -6,7 +6,6 @@ use App\Services\EidEasyApiService;
 use EidEasy\Signatures\Asice;
 use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
-use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -37,7 +36,7 @@ class SignLocallyController extends Controller
     public function downloadUnSignedFile(Request $request)
     {
         $fileName = $request->input('filename');
-        $docId = $request->input('doc_id');
+        $docId    = $request->input('doc_id');
 
         return Storage::download("/unsigned/$docId/$fileName");
     }
@@ -48,7 +47,7 @@ class SignLocallyController extends Controller
             'redirect_uri'     => 'nullable|url',
             'unsigned_file'    => 'required|array',
             'unsigned_file.*'  => 'required|file',
-            'signType'         => 'required|in:local,external,digest,eseal,multisign,csc-api',
+            'signType'         => 'required|in:local,external,digest,eseal,multisign',
             'pdf_x'            => 'nullable|min:0',
             'pdf_y'            => 'nullable|min:0',
             'pdf_page'         => 'nullable|min:0',
@@ -67,7 +66,7 @@ class SignLocallyController extends Controller
         }
 
         $containerType = $request->input('containerType');
-        $signType = $request->input('signType');
+        $signType      = $request->input('signType');
 
         info("Start preparing signing: $signType $containerType");
 
@@ -78,8 +77,8 @@ class SignLocallyController extends Controller
         $sourceFiles = [];
         foreach ($request->file('unsigned_file') as $fileInfo) {
             $fileContent = file_get_contents($fileInfo->path());
-            $fileName = $fileInfo->getClientOriginalName();
-            $mimeType = $fileInfo->getMimeType();
+            $fileName    = $fileInfo->getClientOriginalName();
+            $mimeType    = $fileInfo->getMimeType();
 
             $sourceFiles[] = [
                 'fileName'    => $fileName,
@@ -99,18 +98,18 @@ class SignLocallyController extends Controller
         $signatureContainer = $containerType;
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
-            $padesResponse = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
+            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
             if (!isset($padesResponse['digest'])) {
                 Log::error("Pades preparation failed", $padesResponse);
                 return response("Pades preparation failed");
             }
             $metaData[0]['fileContent'] = $padesResponse['digest']; // Modified PDF digest will be signed.
-            $sourceFilesCache = $sourceFiles;
+            $sourceFilesCache           = $sourceFiles;
             Cache::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $signatureContainer = 'xades';
-            $asice = new Asice();
-            $asiceContainer = $asice->createAsiceContainer($sourceFiles);
+            $asice              = new Asice();
+            $asiceContainer     = $asice->createAsiceContainer($sourceFiles);
             Storage::put("/unsigned/$fileId/container-$fileId.asice", $asiceContainer);
         }
 
@@ -164,34 +163,6 @@ class SignLocallyController extends Controller
             ];
         }
 
-        if ($signType === "csc-api") {
-            $clientId = config('eideasy.client_id');
-            $tokenId = md5($clientId . ':' . Str::random() . ':' . round(microtime(true) * 1000));
-            $adobeAccountId = '123456abcde';
-
-            $accountToken = JWT::encode([
-                'sub' => $adobeAccountId,
-                'iat' => time(),
-                'jti' => $tokenId,
-                'iss' => 'ThisShouldBeSignatureApplicationName',
-                'azp' => $clientId,
-            ], hash('sha256', config('eideasy.secret'), true), 'HS256');
-
-            $apiUrl = config('eideasy.api_url');
-            $redirectBackUri = config('eideasy.redirect_uri') . '/csc-credential';
-            $parameters = [
-                'scope'         => 'service',
-                'response_type' => 'code',
-                'client_id'     => $clientId,
-                'redirect_uri'  => $redirectBackUri,
-                'account_token' => $accountToken,
-            ];
-
-            $redirectUrl = $apiUrl . '/oauth2/authorize?' . http_build_query($parameters);
-
-            return redirect($redirectUrl);
-        }
-
         $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
         if (isset($data['status']) && $data['status'] !== "OK") {
             if (isset($data['message']) && !empty($data['message'])) {
@@ -217,7 +188,7 @@ class SignLocallyController extends Controller
         } elseif ($signType === 'multisign') {
             $response = $this->eidEasyApi->createSigningQueue($docId, ['has_management_page' => true]);
             Cache::put("signing_queue_id_$fileId", $response['id']);
-            Cache::put('signing_queue_secret_' . $response['id'], $response['signing_queue_secret']);
+            Cache::put('signing_queue_secret_'. $response['id'], $response['signing_queue_secret']);
 
             return redirect()->to($response["management_page_url"]);
         } elseif ($signType === "eseal") {
@@ -237,10 +208,10 @@ class SignLocallyController extends Controller
 
         $fileId = $request->input("file_id");
 
-        $docId = Cache::get("doc_id-$fileId");
-        $signType = Cache::get("signType-$fileId");
+        $docId         = Cache::get("doc_id-$fileId");
+        $signType      = Cache::get("signType-$fileId");
         $containerType = Cache::get("containerType-$fileId");
-        $isSandbox = Cache::get("issandbox-$fileId");
+        $isSandbox     = Cache::get("issandbox-$fileId");
 
         if ($signingQueueId = Cache::get("signing_queue_id_$fileId")) {
             $response = $this->eidEasyApi->getSigningQueue(
@@ -263,25 +234,25 @@ class SignLocallyController extends Controller
 
         $data = $this->eidEasyApi->downloadSignedFile($docId);
 
-        $fileName = $data['filename'];
+        $fileName           = $data['filename'];
         $signedFileContents = $data['signed_file_contents'];
 
         // Assemble signed file and make sure its in binary form before downloading.
         if ($signType === "digest" && $containerType === "pdf") {
-            $metaData = Cache::get("prepared-files-$fileId");
-            $fileName = $metaData[0]['fileName'];
+            $metaData      = Cache::get("prepared-files-$fileId");
+            $fileName      = $metaData[0]['fileName'];
             $signatureTime = Cache::get("pades-signatureTime-$fileId");
             /** @var array $padesDssData */
             $padesDssData = $data['pades_dss_data'] ?? null;
 
-            $unsignedFile = Storage::get("/unsigned/$fileId/" . $fileName);
-            $padesResponse = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData);
+            $unsignedFile       = Storage::get("/unsigned/$fileId/" . $fileName);
+            $padesResponse      = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signedFileContents, $padesDssData);
             $signedFileContents = base64_decode($padesResponse['signedFile']);
         } elseif ($signType === "digest" && $containerType === "asice") {
-            $fileName = "container-$fileId.asice";
-            $asice = new Asice();
-            $unsignedFile = Storage::get("/unsigned/$fileId/$fileName");
-            $asiceContainer = $asice->addSignatureAsice($unsignedFile, base64_decode($signedFileContents));
+            $fileName           = "container-$fileId.asice";
+            $asice              = new Asice();
+            $unsignedFile       = Storage::get("/unsigned/$fileId/$fileName");
+            $asiceContainer     = $asice->addSignatureAsice($unsignedFile, base64_decode($signedFileContents));
             $signedFileContents = $asiceContainer;
         } else {
             $signedFileContents = base64_decode($signedFileContents);
