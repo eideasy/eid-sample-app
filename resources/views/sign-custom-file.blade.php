@@ -107,12 +107,6 @@
                 names and email addresses of all the signers.
             </label>
         </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="csc-api" value="csc-api">
-            <label class="form-check-label" for="csc-api">
-                Sign via CSC API
-            </label>
-        </div>
         <br>
 
         <h3>Container type</h3>
