@@ -220,10 +220,10 @@ class SignLocallyController extends Controller
             );
 
             $docId = collect($response['signers'] ?? [])
-                    ->whereNotNull('doc_id')
-                    ->whereNotNull('signed_at')
-                    ->sortByDesc('signed_at')
-                    ->first()['doc_id'] ?? $docId;
+                ->whereNotNull('doc_id')
+                ->whereNotNull('signed_at')
+                ->sortByDesc('signed_at')
+                ->first()['doc_id'] ?? $docId;
         }
 
         if ($isSandbox) {
