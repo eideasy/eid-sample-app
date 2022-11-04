@@ -95,6 +95,7 @@ class CscApiController extends Controller
         $credentialInfo = $this->getCredentialInfo($accesToken, $credentialID);
 
         Cache::put("credentialID-$state", $credentialID);
+        Cache::put("signAlgo-$state", $credentialInfo['key']['algo'][0]);
         Cache::put("accessToken-$state", $accesToken);
 
         return redirect()->to($this->credentialUrl($credentialID, $request->input('state')));
@@ -110,14 +111,15 @@ class CscApiController extends Controller
         $state = $request->input('state');
         $accessToken = Cache::pull("accessToken-$state");
         $credentialID = Cache::pull("credentialID-$state");
+        $signAlgo = Cache::pull("signAlgo-$state");
         $serializedFileData = Cache::get("file-data-for-csc-api-$state");
         $fileData = unserialize($serializedFileData);
-        $result = $this->signHash($accessToken, $credentialID, $fileData['hash'], $sadToken);
+        $result = $this->signHash($accessToken, $credentialID, $fileData['hash'], $sadToken, $signAlgo);
 
         $signature = $result['signatures'][0] ?? null;
 
         if (!$signature) {
-            throw new \Exception('signHash result did is missing signatures');
+            throw new \Exception('signHash result is missing signatures');
         }
 
         Cache::put("csc-api-signature-$state", $signature);
@@ -167,7 +169,7 @@ class CscApiController extends Controller
         return $response['access_token'];
     }
 
-    protected function signHash($accessToken, $credentialID, $hash, $sadToken) {
+    protected function signHash($accessToken, $credentialID, $hash, $sadToken, $signAlgo) {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accessToken,
         ])->post(config('eideasy.api_url') . '/csc/v1/signatures/signHash', [
@@ -175,7 +177,7 @@ class CscApiController extends Controller
             "SAD" => $sadToken,
             "hash" => [$hash],
             "hashAlgo" => "2.16.840.1.101.3.4.2.1",
-            "signAlgo" => "1.2.840.10045.4.3.2",
+            "signAlgo" => $signAlgo,
         ]);
 
         return $response->json();
