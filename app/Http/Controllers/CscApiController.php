@@ -35,7 +35,7 @@ class CscApiController extends Controller
     public function startCscApiSignature(Request $request)
     {
         $request->validate([
-            'unsigned_file'    => 'required|file',
+            'unsigned_file' => 'required|file',
         ]);
 
         $fileInfo = $request->file('unsigned_file');
@@ -48,8 +48,8 @@ class CscApiController extends Controller
         Storage::put("/unsigned/$fileId/$fileName", $fileContent);
 
         $preparedFile = [
-            'fileName'    => $fileName,
-            'mimeType'    => $mimeType,
+            'fileName' => $fileName,
+            'mimeType' => $mimeType,
         ];
 
         $padesResponse = $this->pades->getPadesDigest($fileContent);
@@ -73,7 +73,7 @@ class CscApiController extends Controller
             'client_id'     => $clientId,
             'redirect_uri'  => $redirectBackUri,
             'account_token' => $accountToken,
-            'state' => $fileId,
+            'state'         => $fileId,
         ];
 
         $redirectUrl = $apiUrl . '/oauth2/authorize?' . http_build_query($parameters);
@@ -89,12 +89,17 @@ class CscApiController extends Controller
             config('eideasy.redirect_uri') . '/csc-service-return'
         );
 
-        $credentialIDs = $this->getCredentialsList($accesToken);
-        $credentialID = $credentialIDs['credentialIDs'][0];
+        $fetchResult = $this->fetchCredentialsList($accesToken);
+        if (!$fetchResult->json()) {
+            return $fetchResult->body();
+        }
+        $credentialIDs = $fetchResult->json();
+        $credentialID = $credentialIDs['credentialIDs'][0] ?? null;
 
         $credentialInfo = $this->getCredentialInfo($accesToken, $credentialID);
 
         Cache::put("credentialID-$state", $credentialID);
+        Cache::put("signAlgo-$state", $credentialInfo['key']['algo'][0]);
         Cache::put("accessToken-$state", $accesToken);
 
         return redirect()->to($this->credentialUrl($credentialID, $request->input('state')));
@@ -110,14 +115,15 @@ class CscApiController extends Controller
         $state = $request->input('state');
         $accessToken = Cache::pull("accessToken-$state");
         $credentialID = Cache::pull("credentialID-$state");
+        $signAlgo = Cache::pull("signAlgo-$state");
         $serializedFileData = Cache::get("file-data-for-csc-api-$state");
         $fileData = unserialize($serializedFileData);
-        $result = $this->signHash($accessToken, $credentialID, $fileData['hash'], $sadToken);
+        $result = $this->signHash($accessToken, $credentialID, $fileData['hash'], $sadToken, $signAlgo);
 
         $signature = $result['signatures'][0] ?? null;
 
         if (!$signature) {
-            throw new \Exception('signHash result did is missing signatures');
+            throw new \Exception('signHash result is missing signatures');
         }
 
         Cache::put("csc-api-signature-$state", $signature);
@@ -125,7 +131,8 @@ class CscApiController extends Controller
         return view('download-csc-api-signed-file', ['fileId' => $state]);
     }
 
-    public function downloadSignedFile(Request $request) {
+    public function downloadSignedFile(Request $request)
+    {
         $fileId = $request->input('file_id');
         $signature = Cache::get("csc-api-signature-$fileId");
         // Assemble signed file and make sure its in binary form before downloading.
@@ -151,7 +158,8 @@ class CscApiController extends Controller
         return Response::make($signedFileContents, 200, $headers);
     }
 
-    protected function getOauthToken($code, $redirectUri) {
+    protected function getOauthToken($code, $redirectUri)
+    {
         $response = Http::post(config('eideasy.api_url') . '/oauth2/token', [
             'code'          => $code,
             'grant_type'    => 'authorization_code',
@@ -167,29 +175,32 @@ class CscApiController extends Controller
         return $response['access_token'];
     }
 
-    protected function signHash($accessToken, $credentialID, $hash, $sadToken) {
+    protected function signHash($accessToken, $credentialID, $hash, $sadToken, $signAlgo)
+    {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accessToken,
         ])->post(config('eideasy.api_url') . '/csc/v1/signatures/signHash', [
             "credentialID" => $credentialID,
-            "SAD" => $sadToken,
-            "hash" => [$hash],
-            "hashAlgo" => "2.16.840.1.101.3.4.2.1",
-            "signAlgo" => "1.2.840.10045.4.3.2",
+            "SAD"          => $sadToken,
+            "hash"         => [$hash],
+            "hashAlgo"     => "2.16.840.1.101.3.4.2.1",
+            "signAlgo"     => $signAlgo,
         ]);
 
         return $response->json();
     }
 
-    protected function getCredentialsList($accesToken) {
+    protected function fetchCredentialsList($accesToken)
+    {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accesToken,
         ])->post(config('eideasy.api_url') . '/csc/v1/credentials/list');
 
-        return $response->json();
+        return $response;
     }
 
-    protected function getCredentialInfo($accesToken, $credentialID) {
+    protected function getCredentialInfo($accesToken, $credentialID)
+    {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accesToken,
         ])->post(config('eideasy.api_url') . '/csc/v1/credentials/info', [
@@ -199,7 +210,8 @@ class CscApiController extends Controller
         return $response->json();
     }
 
-    protected function credentialUrl($credentialID, $state) {
+    protected function credentialUrl($credentialID, $state)
+    {
 
         $clientId = config('eideasy.client_id');
         $apiUrl = config('eideasy.api_url');
@@ -215,11 +227,11 @@ class CscApiController extends Controller
             'client_id'     => $clientId,
             'redirect_uri'  => $redirectBackUri,
             'account_token' => $accountToken,
-            'credentialID' => $credentialID,
-            'state' => $state,
-            'hash' => $fileData['hash'],
+            'credentialID'  => $credentialID,
+            'state'         => $state,
+            'hash'          => $fileData['hash'],
         ];
 
-        return  $apiUrl . '/oauth2/authorize?' . http_build_query($parameters);
+        return $apiUrl . '/oauth2/authorize?' . http_build_query($parameters);
     }
 }
