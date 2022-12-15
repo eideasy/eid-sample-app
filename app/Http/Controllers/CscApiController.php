@@ -84,33 +84,42 @@ class CscApiController extends Controller
     protected function credential(Request $request)
     {
         $state = $request->input('state');
-        $accesToken = $this->getOauthToken(
+        $tokenFetchResult = $this->getOauthToken(
             $request->input('code'),
             config('eideasy.redirect_uri') . '/csc-service-return'
         );
 
-        $fetchResult = $this->fetchCredentialsList($accesToken);
+        // We refresh the token here just to demo how it is done.
+        // In real worlds scenarios you probably want to refresh the token when it's about to expire and your
+        // user has not managed to complete the flow yet.
+        $refreshResult = $this->getOauthTokenByRefreshToken($tokenFetchResult['refresh_token']);
+
+        $accessToken = $refreshResult['access_token'];
+
+        $fetchResult = $this->fetchCredentialsList($accessToken);
         if (!$fetchResult->json()) {
             return $fetchResult->body();
         }
         $credentialIDs = $fetchResult->json();
         $credentialID = $credentialIDs['credentialIDs'][0] ?? null;
 
-        $credentialInfo = $this->getCredentialInfo($accesToken, $credentialID);
+        $credentialInfo = $this->getCredentialInfo($accessToken, $credentialID);
 
         Cache::put("credentialID-$state", $credentialID);
         Cache::put("signAlgo-$state", $credentialInfo['key']['algo'][0]);
-        Cache::put("accessToken-$state", $accesToken);
+        Cache::put("accessToken-$state", $accessToken);
 
         return redirect()->to($this->credentialUrl($credentialID, $request->input('state')));
     }
 
     protected function signature(Request $request)
     {
-        $sadToken = $this->getOauthToken(
+        $tokenFetchResult = $this->getOauthToken(
             $request->input('code'),
             config('eideasy.redirect_uri') . '/csc-signature'
         );
+
+        $sadToken = $tokenFetchResult['access_token'];
 
         $state = $request->input('state');
         $accessToken = Cache::pull("accessToken-$state");
@@ -119,7 +128,6 @@ class CscApiController extends Controller
         $serializedFileData = Cache::get("file-data-for-csc-api-$state");
         $fileData = unserialize($serializedFileData);
         $result = $this->signHash($accessToken, $credentialID, $fileData['hash'], $sadToken, $signAlgo);
-
         $signature = $result['signatures'][0] ?? null;
 
         if (!$signature) {
@@ -172,7 +180,29 @@ class CscApiController extends Controller
             return $response->body();
         }
 
-        return $response['access_token'];
+        return [
+            'access_token'  => $response['access_token'],
+            'refresh_token' => $response['refresh_token'] ?? null,
+        ];
+    }
+
+    protected function getOauthTokenByRefreshToken($refreshToken)
+    {
+        $response = Http::post(config('eideasy.api_url') . '/oauth2/token', [
+            'refresh_token' => $refreshToken,
+            'grant_type'    => 'refresh_token',
+            'client_id'     => config('eideasy.client_id'),
+            'client_secret' => config('eideasy.secret'),
+        ]);
+
+        if (!isset($response['access_token'])) {
+            return $response->body();
+        }
+
+        return [
+            'access_token'  => $response['access_token'],
+            'refresh_token' => $response['refresh_token'],
+        ];
     }
 
     protected function signHash($accessToken, $credentialID, $hash, $sadToken, $signAlgo)
