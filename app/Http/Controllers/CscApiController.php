@@ -104,6 +104,9 @@ class CscApiController extends Controller
         $credentialID = $credentialIDs['credentialIDs'][0] ?? null;
 
         $credentialInfo = $this->getCredentialInfo($accessToken, $credentialID);
+        info('CSC API credentialInfo', [
+            'credentialInfo' => $credentialInfo
+        ]);
 
         Cache::put("credentialID-$state", $credentialID);
         Cache::put("signAlgo-$state", $credentialInfo['key']['algo'][0]);
@@ -235,6 +238,9 @@ class CscApiController extends Controller
             'Authorization' => 'Bearer ' . $accesToken,
         ])->post(config('eideasy.api_url') . '/csc/v1/credentials/info', [
             'credentialID' => $credentialID,
+            'certificates' => 'chain',
+            'certInfo' => true,
+            'authInfo' => true,
         ]);
 
         return $response->json();
