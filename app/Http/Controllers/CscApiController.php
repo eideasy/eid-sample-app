@@ -252,7 +252,6 @@ class CscApiController extends Controller
         $clientId = config('eideasy.client_id');
         $apiUrl = config('eideasy.api_url');
         $redirectBackUri = config('eideasy.redirect_uri') . '/csc-signature';
-        $accountToken = $this->cscApiService->createAccountToken();
 
         $serializedFileData = Cache::get("file-data-for-csc-api-$state");
         $fileData = unserialize($serializedFileData);
@@ -262,7 +261,6 @@ class CscApiController extends Controller
             'response_type' => 'code',
             'client_id'     => $clientId,
             'redirect_uri'  => $redirectBackUri,
-            'account_token' => $accountToken,
             'credentialID'  => $credentialID,
             'state'         => $state,
             'hash'          => $fileData['hash'],
