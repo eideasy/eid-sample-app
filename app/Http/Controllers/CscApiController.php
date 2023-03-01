@@ -19,10 +19,22 @@ class CscApiController extends Controller
     protected CscApiService $cscApiService;
     protected $pades;
 
-    private const ALGO_NAME_BY_OID = [
-        '1.2.840.113549.1.1.11' => 'sha256WithRSAEncryption',
-        '1.2.840.10045.4.3.4'   => 'ecdsa-with-SHA512',
-        '1.2.840.10045.4.3.2'   => 'ecdsa-with-SHA256',
+    private const ALGO_PARAMS_BY_OID = [
+        '1.2.840.113549.1.1.11' => [
+            'name'            => 'sha256WithRSAEncryption',
+            'encryption'      => 'RSA',
+            'digestAlgorithm' => 'SHA256'
+        ],
+        '1.2.840.10045.4.3.4'   => [
+            'name'            => 'ecdsa-with-SHA512',
+            'encryption'      => 'EC',
+            'digestAlgorithm' => 'SHA512'
+        ],
+        '1.2.840.10045.4.3.2'   => [
+            'name'            => 'ecdsa-with-SHA256',
+            'encryption'      => 'EC',
+            'digestAlgorithm' => 'SHA256'
+        ],
     ];
 
     public function __construct(Client $client, Pades $pades)
@@ -314,17 +326,14 @@ class CscApiController extends Controller
                $certificate
     )
     {
-        $algorithmName = self::ALGO_NAME_BY_OID[$algorithm];
+        $algoParams = self::ALGO_PARAMS_BY_OID[$algorithm];
 
-        if (Str::contains(strtolower($algorithmName), ['rsa'])) {
-            $encryption = "RSA";
+        if ($algoParams['encryption'] === 'RSA') {
             $encoding = "none";
         } else {
-            $encryption = "EC";
             $encoding = "RS";
         }
-
-        $digestAlgorithm = explode("With", $algorithm)['0'] ?? "SHA256";
+        
         $body = [
             'signingTime'         => $signingTime,
             'signature'           => bin2hex(base64_decode($signature)),
@@ -333,8 +342,8 @@ class CscApiController extends Controller
             'baseline'            => 'B',
             'signatureParameters' => [
                 'encoding'        => $encoding,
-                'encryption'      => $encryption,
-                'digestAlgorithm' => $digestAlgorithm
+                'encryption'      => $algoParams['encryption'],
+                'digestAlgorithm' => $algoParams['digestAlgorithm'],
             ],
             'files'               => [$fileData],
             'disableValidation'   => true,
