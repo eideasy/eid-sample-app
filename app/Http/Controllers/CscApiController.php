@@ -21,8 +21,8 @@ class CscApiController extends Controller
 
     private const ALGO_NAME_BY_OID = [
         '1.2.840.113549.1.1.11' => 'sha256WithRSAEncryption',
-        '1.2.840.10045.4.3.4' => 'ecdsa-with-SHA512',
-        '1.2.840.10045.4.3.2' => 'ecdsa-with-SHA256',
+        '1.2.840.10045.4.3.4'   => 'ecdsa-with-SHA512',
+        '1.2.840.10045.4.3.2'   => 'ecdsa-with-SHA256',
     ];
 
     public function __construct(Client $client, Pades $pades)
@@ -122,7 +122,7 @@ class CscApiController extends Controller
             $certificate,
             [
                 'mimeType' => Cache::get("mimeType-$processId"),
-                'hash' => Cache::get("rawDigest-$processId"),
+                'hash'     => Cache::get("rawDigest-$processId"),
                 'fileName' => Cache::get("fileName-$processId"),
             ]
         );
@@ -252,8 +252,8 @@ class CscApiController extends Controller
         ])->post(config('eideasy.api_url') . '/csc/v1/credentials/info', [
             'credentialID' => $credentialID,
             'certificates' => 'chain',
-            'certInfo' => true,
-            'authInfo' => true,
+            'certInfo'     => true,
+            'authInfo'     => true,
         ]);
 
         return $response->json();
@@ -281,17 +281,17 @@ class CscApiController extends Controller
     private function prepareCadesContainer(string $certificate, array $file)
     {
         $body = [
-            'certificate'      => $certificate,
-            'files'            => [
+            'certificate'       => $certificate,
+            'files'             => [
                 [
-                    'fileName' => $file['fileName'],
-                    'mimeType' => $file['mimeType'],
+                    'fileName'    => $file['fileName'],
+                    'mimeType'    => $file['mimeType'],
                     'fileContent' => $file['hash'],
                 ]
             ],
-            'baseline'         => 'B',
+            'baseline'          => 'B',
             'disableValidation' => true,
-            'signingSessionId' => 99999999,
+            'signingSessionId'  => 99999999,
         ];
 
         $response = $this->callDss('/signature/cades/prepare', $body);
@@ -301,26 +301,27 @@ class CscApiController extends Controller
 
         return [
             "signedInfoDigest" => $signHashInBase64,
-            "hexDigest" => $signHash,
-            "signingTime" => $response['signingTime'],
+            "hexDigest"        => $signHash,
+            "signingTime"      => $response['signingTime'],
         ];
     }
 
     public function finalizeCadesSignature(
-        array $fileData,
+        array  $fileData,
         string $signature,
-        $algorithm,
-        $signingTime,
-        $certificate
-    ) {
+               $algorithm,
+               $signingTime,
+               $certificate
+    )
+    {
         $algorithmName = self::ALGO_NAME_BY_OID[$algorithm];
 
         if (Str::contains(strtolower($algorithmName), ['rsa'])) {
             $encryption = "RSA";
-            $encoding   = "none";
+            $encoding = "none";
         } else {
             $encryption = "EC";
-            $encoding   = "RS";
+            $encoding = "RS";
         }
 
         $digestAlgorithm = explode("With", $algorithm)['0'] ?? "SHA256";
@@ -336,7 +337,7 @@ class CscApiController extends Controller
                 'digestAlgorithm' => $digestAlgorithm
             ],
             'files'               => [$fileData],
-            'disableValidation' => true,
+            'disableValidation'   => true,
         ];
 
         Log::info('finalizeCadesSignature', compact('body'));
