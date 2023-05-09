@@ -51,7 +51,7 @@ class HomeController extends Controller
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
                 $message->to(env('NOTIFY_EMAIL'))
                         ->subject("New login from eID Easy demo app")
-                        ->setBody("New user testing the service: " . json_encode($responseData));
+                        ->html("New user testing the service: " . json_encode($responseData));
             });
         }
 
