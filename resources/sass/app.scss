@@ -1,1 +1,18 @@
-//
+@import "common/variables";
+@import "components/topbar";
+@import "components/footer";
+@import "components/hero";
+
+body {
+  margin: 0;
+  position: relative
+}
+
+.main {
+  padding: 40px 0;
+  min-height: calc(100vh - 58px - 93px);
+}
+
+.eid-button {
+  height: 50px
+}

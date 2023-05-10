@@ -1,0 +1,20 @@
+.footer {
+  padding: 1rem;
+}
+
+.footer__row {
+  display: flex;
+  flex-wrap: wrap;
+  text-align: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.footer__col_spacer {
+  padding: 0 .75rem;
+}
+
+.footer__note {
+  font-size: .875rem;
+  text-align: center;
+}

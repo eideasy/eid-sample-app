@@ -1,0 +1,19 @@
+.hero {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.hero__link {
+  font-size: 5rem;
+  background-clip: text;
+  background-image: linear-gradient(to right, #338cf5, #4fd1c5);
+  color: transparent;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    background-image: linear-gradient(to right, #338cf5, #4fd1c5);
+    color: transparent;
+  }
+}

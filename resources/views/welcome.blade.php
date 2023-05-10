@@ -2,18 +2,33 @@
 
 @section('content')
 
-    <h1>eID Easy services test</h1>
+    <h1 class="hero">
+        <a
+            href="https://eideasy.com"
+            target="_blank"
+            class="hero__link"
+        >
+            eID Easy
+        </a>
+        <br>
+        Services Demo
+    </h1>
+    
+    <p>
+        This is a demo app you can use to test out eID Easy services.
+    </p>
     <p>More info from <a href="https://eideasy.com">eideasy.com</a></p>
 
     <p>
-        Source code for this app can be found from <a href="https://github.com/eideasy/eid-sample-app">https://github.com/eideasy/eid-sample-app</a>
+        Source code for this app is available at <a href="https://github.com/eideasy/eid-sample-app" target="_blank">https://github.com/eideasy/eid-sample-app</a>
     </p>
     <p>
-        Full API documentation is available at <a href=" https://documenter.getpostman.com/view/3869493/Szf6WoG1">https://documenter.getpostman.com/view/3869493/Szf6WoG1</a>
+        eID Easy services documentation is available at <a href="https://docs.eideasy.com" target="_blank">https://docs.eideasy.com</a>
     </p>
     <p>
         This app is built with Laravel and is using VueJS in some places. It is meant to be reference to look at when
-        you get into trouble with your integration. If you run this app then do not forget to execute commands "composer
+        you get into trouble with your integration.
+        Do not forget to  "composer
         install" and "npm run dev"
     </p>
 
@@ -32,10 +47,6 @@
             </div>
         @endif
     </div>
-
-    <footer>This is a free service to test out eID Easy API-s. After the signature or user identification your information
-        might be available for the service provider.
-    </footer>
 @endsection
 
 @section('scripts')
