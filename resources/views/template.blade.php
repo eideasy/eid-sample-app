@@ -12,18 +12,15 @@
 </head>
 <body>
 
-<div class="flex-center position-ref full-height">
-    <div class="container">
-        <nav class="navbar navbar-light bg-light">
-            <a class="navbar-brand" href="/">
-                Home
-            </a>
-        </nav>
-    </div>
+@include('topbar')
+
+<div class="main">
     <div class="container">
         @yield('content')
     </div>
 </div>
+
+@include('footer')
 
 <script src="{{asset('/js/vendor/jquery-3.5.1.min.js')}}"></script>
 <script src="{{asset('/js/vendor/popper.min.js')}}"></script>
@@ -31,23 +28,23 @@
 <script src="{{asset('/js/vendor/toastr.min.js')}}"></script>
 
 <script>
-    toastr.options = {
-        "closeButton": false,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": false,
-        "positionClass": "toast-top-center",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    }
+  toastr.options = {
+    "closeButton": false,
+    "debug": false,
+    "newestOnTop": false,
+    "progressBar": false,
+    "positionClass": "toast-top-center",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+  }
 </script>
 @yield('scripts')
 </body>
