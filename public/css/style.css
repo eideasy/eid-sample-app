@@ -53,12 +53,13 @@
 
 .hero {
   text-align: center;
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 700;
+  margin-bottom: 4rem;
 }
 
 .hero__link {
-  font-size: 5rem;
+  font-size: 4rem;
   -webkit-background-clip: text;
           background-clip: text;
   background-image: linear-gradient(to right, #338cf5, #4fd1c5);
@@ -70,6 +71,13 @@
   text-decoration: none;
   background-image: linear-gradient(to right, #338cf5, #4fd1c5);
   color: transparent;
+}
+
+.code {
+  background-color: #2d2d2d;
+  color: #f7f7f7;
+  padding: 20px 20px;
+  border-radius: 10px;
 }
 
 body {

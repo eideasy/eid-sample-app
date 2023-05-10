@@ -1,9 +1,7 @@
 <template>
-  <div>
-    <h2 class="text-center">Returned user data</h2>
-    <pre>
-{{prettyData}}
-        </pre>
+  <div class="mb-4 pb-4">
+    <h2>Returned user data</h2>
+    <pre class="code">{{prettyData}}</pre>
   </div>
 </template>
 
