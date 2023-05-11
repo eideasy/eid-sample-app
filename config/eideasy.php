@@ -10,4 +10,8 @@ return [
     'dss_uri' => env('DSS_SIGN_UTILITY', 'https://staging-dss.eideasy.com/api'),
     'adobe_account_id' => env('ADOBE_ACCOUNT_ID', 'dummy'),
     'sign_utility_key' => env('SIGN_UTILITY_KEY', 'dummy'),
+    'eid_test_api' => env('EID_TEST_API', 'dummy'),
+    'eid_test_client_id' => env('EID_TEST_CLIENT_ID', 'dummy'),
+    'eid_test_secret' => env('EID_TEST_SECRET', 'dummy'),
+    'notify_email' => env('NOTIFY_EMAIL'),
 ];

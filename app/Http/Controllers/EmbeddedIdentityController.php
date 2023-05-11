@@ -15,9 +15,9 @@ class EmbeddedIdentityController extends Controller
 
     public function __construct(EidEasyApi $api)
     {
-        $api->setClientId(env('EID_CLIENT_ID'));
-        $api->setSecret(env('EID_SECRET'));
-        $api->setApiUrl(env('EID_API_URL'));
+        $api->setClientId(config('eideasy.client_id'));
+        $api->setSecret(config('eideasy.secret'));
+        $api->setApiUrl(config('eideasy.api_url'));
 
         $this->eidEasyApi = $api;
     }
@@ -192,10 +192,10 @@ class EmbeddedIdentityController extends Controller
             info("Nothing to notify");
             return;
         }
-        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+        if (config('eideasy.notify_email') && is_array($responseData)) {
             Mail::send([], [], function ($message) use ($responseData) {
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
-                $message->to(env('NOTIFY_EMAIL'))
+                $message->to(config('eideasy.notify_email'))
                     ->subject("New login from eID Easy demo app")
                     ->html("New user testing the service: " . json_encode($responseData));
             });

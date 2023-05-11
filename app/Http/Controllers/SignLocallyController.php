@@ -60,9 +60,9 @@ class SignLocallyController extends Controller
 
         // Use sandbox credentials for e-Seals for now
         if ($request->input('signType') === 'eseal') {
-            $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
-            $this->eidEasyApi->setClientId(env('EID_TEST_CLIENT_ID'));
-            $this->eidEasyApi->setSecret(env('EID_TEST_SECRET'));
+            $this->eidEasyApi->setApiUrl(config('eideasy.eid_test_api'));
+            $this->eidEasyApi->setClientId(config('eideasy.eid_test_client_id'));
+            $this->eidEasyApi->setSecret(config('eideasy.eid_test_secret'));
         }
 
         $containerType = $request->input('containerType');
@@ -227,9 +227,9 @@ class SignLocallyController extends Controller
         }
 
         if ($isSandbox) {
-            $this->eidEasyApi->setApiUrl(env('EID_TEST_API'));
-            $this->eidEasyApi->setClientId(env('EID_TEST_CLIENT_ID'));
-            $this->eidEasyApi->setSecret(env('EID_TEST_SECRET'));
+            $this->eidEasyApi->setApiUrl(config('eideasy.eid_test_api'));
+            $this->eidEasyApi->setClientId(config('eideasy.eid_test_client_id'));
+            $this->eidEasyApi->setSecret(config('eideasy.eid_test_secret'));
         }
 
         $data = $this->eidEasyApi->downloadSignedFile($docId);
