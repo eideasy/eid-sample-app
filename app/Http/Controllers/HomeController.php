@@ -46,10 +46,10 @@ class HomeController extends Controller
 
         $responseData = $response->json();
 
-        if (env('NOTIFY_EMAIL') && is_array($responseData)) {
+        if (config('eideasy.notify_email') && is_array($responseData)) {
             Mail::send([], [], function ($message) use ($responseData) {
                 $responseData = Arr::only($responseData, ['idcode', 'firstname', 'lastname', 'country', 'current_login_method']);
-                $message->to(env('NOTIFY_EMAIL'))
+                $message->to(config('eideasy.notify_email'))
                         ->subject("New login from eID Easy demo app")
                         ->html("New user testing the service: " . json_encode($responseData));
             });

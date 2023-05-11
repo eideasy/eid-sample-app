@@ -24,7 +24,7 @@ class JsSdkController extends Controller
         $dataArr              = $request->get('data');
         $dataArr['timestamp'] = round(microtime(true) * 1000);
 
-        $secret = env('EID_SECRET');
+        $secret = config('eideasy.secret');
 
         $data = json_encode($dataArr);
         $hmac = hash_hmac("SHA256", $data, $secret, true);
@@ -40,7 +40,7 @@ class JsSdkController extends Controller
         $iv      = $request->input('iv');
         $payload = $request->input('payload');
 
-        $secret = env('EID_SECRET');
+        $secret = config('eideasy.secret');
 
         $verificationHmac = hash_hmac("SHA256", $payload, $secret, true);
         $verificationHmac = base64_encode($verificationHmac);
