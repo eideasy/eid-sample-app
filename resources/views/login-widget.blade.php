@@ -37,8 +37,8 @@ $widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
         countryCode: 'EE', // ISO 3166  two letter country code
         language: 'en', // ISO 639-1 two letter language code,
         sandbox: {{ $widgetSandbox }},
-        clientId: '{{ env('EID_CLIENT_ID', '') }}',
-        redirectUri: '{{ env('EID_WIDGET_REDIRECT_URL', url('/')) }}', // this gets used for redirects e.g. when using eParaksts mobile
+        clientId: '{{ config('eideasy.client_id') }}',
+        redirectUri: '{{ config('eideasy.redirect_uri') }}', // this gets used for redirects e.g. when using eParaksts mobile
         apiEndpoints: {
           identityStart: () => '{{url('/')}}/api/identity/start',
           identityFinish: () => '{{url('/')}}/api/identity/finish',
