@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
 {
-
     public function getEmbeddedIdentification()
     {
-        return view('embedded-identification');
+        return view('embedded-identification', [
+            'client_id' => config('eideasy.client_id'),
+            'card_domain' => config('eideasy.card_domain'),
+        ]);
     }
 
     public function signAsiceFile()

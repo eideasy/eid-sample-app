@@ -16,7 +16,7 @@
             </div>
         </div>
         <transition name="bounce" mode="out-in">
-            <component :is="method"></component>
+            <component :is="method" :client-id="clientId" :card-domain="cardDomain"></component>
         </transition>
     </div>
 </template>
@@ -33,6 +33,16 @@
     Vue.component('ee-id-card-login', EeIdcardLogin);
 
     export default {
+        props: {
+            clientId: {
+                type: String,
+                required: true,
+            },
+            cardDomain: {
+                type: String,
+                required: true,
+            },
+        },
         data() {
             return {
                 'method': null,
