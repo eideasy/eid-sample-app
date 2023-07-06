@@ -4,7 +4,19 @@
 
 <script>
 export default {
-    props: ['doc_id'],
+  props: {
+      doc_id: {
+          type: String,
+      },
+      clientId: {
+          type: String,
+          required: true,
+      },
+      apiUrl: {
+          type: String,
+          required: true,
+      },
+  },
     data() {
         return {
             token: null,
@@ -30,14 +42,14 @@ export default {
 
             toastr.success('Certificate acquired, preparing container');
             console.log("certificate is", certificate);
-            const startSignResponse = await fetch(`${process.env.MIX_EID_API_URL}/api/signatures/start-signing`, {
+            const startSignResponse = await fetch(`${this.apiUrl}/api/signatures/start-signing`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    client_id: process.env.MIX_EID_CLIENTID,
+                    client_id: this.clientId,
                     sign_type: "id-card",
                     doc_id: this.doc_id,
                     certificate: certificate.hex
@@ -53,14 +65,14 @@ export default {
             toastr.success('Signature on the card completed, finalizing signature and getting signed container');
             console.log("Signature is", signature);
 
-            const signResponse = await fetch(`${process.env.MIX_EID_API_URL}/api/signatures/id-card/complete`, {
+            const signResponse = await fetch(`${this.apiUrl}/api/signatures/id-card/complete`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    client_id: process.env.MIX_EID_CLIENTID,
+                    client_id: this.clientId,
                     doc_id: this.doc_id,
                     signature_value: signature.hex
                 })
