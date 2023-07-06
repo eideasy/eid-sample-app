@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        View::share([
+            'client_id' => config('eideasy.client_id'),
+            'card_domain' => config('eideasy.card_domain'),
+            'api_url' => config('eideasy.api_url'),
+        ]);
     }
 }

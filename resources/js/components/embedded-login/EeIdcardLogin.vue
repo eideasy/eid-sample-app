@@ -17,6 +17,16 @@
 
 <script>
     export default {
+        props: {
+          clientId: {
+            type: String,
+            required: true
+          },
+          cardDomain: {
+            type: String,
+            required: true
+          },
+        },
         data() {
             return {
                 token: null,
@@ -35,7 +45,7 @@
                     return;
                 }
                 this.token = '';
-                let cardReadUrl = `https://${country}${process.env.MIX_EID_CARD_DOMAIN}/api/identity/${process.env.MIX_EID_CLIENTID}/read-card`;
+                let cardReadUrl = `https://${country}${this.cardDomain}/api/identity/${this.clientId}/read-card`;
                 try {
                     let cardReadResponse = await axios.get(cardReadUrl, {
                         withCredentials: true

@@ -3,7 +3,7 @@
 @section('content')
 
     <div id="app">
-        <embedded-login></embedded-login>
+        <embedded-login client-id="{{ $client_id }}" card-domain="{{ $card_domain }}"></embedded-login>
     </div>
 
 @endsection

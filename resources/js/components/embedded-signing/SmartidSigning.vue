@@ -36,7 +36,19 @@ import {BModal} from 'bootstrap-vue';
 Vue.component('b-modal', BModal);
 
 export default {
-    props: ['doc_id'],
+    props: {
+      doc_id: {
+        type: String,
+      },
+      clientId: {
+        type: String,
+        required: true,
+      },
+      apiUrl: {
+        type: String,
+        required: true,
+      },
+    },
     data() {
         return {
             country: 'EE',
@@ -51,8 +63,8 @@ export default {
             this.error = null;
             this.userData = null;
             try {
-                let startResponse = await axios.post(`${process.env.MIX_EID_API_URL}/api/signatures/start-signing`, {
-                    client_id: process.env.MIX_EID_CLIENTID,
+                let startResponse = await axios.post(`${this.apiUrl}/api/signatures/start-signing`, {
+                    client_id: this.clientId,
                     sign_type: "smart-id",
                     doc_id: this.doc_id,
                     idcode: this.idcode,
@@ -62,8 +74,8 @@ export default {
                 this.challenge = startResponse.data.challenge;
                 this.showModal = true;
 
-                let signResponse = await axios.post(`${process.env.MIX_EID_API_URL}/api/signatures/sk-smart-id/complete`, {
-                    client_id: process.env.MIX_EID_CLIENTID,
+                let signResponse = await axios.post(`${this.apiUrl}/api/signatures/sk-smart-id/complete`, {
+                    client_id: this.clientId,
                     doc_id: this.doc_id,
                     token: startResponse.data.token
                 });
