@@ -19,7 +19,6 @@
           <component :is="method"
                      :doc_id="doc_id"
                      :client-id="clientId"
-                     :cardDomain="cardDomain"
                      :apiUrl="apiUrl"
           ></component>
         </transition>
@@ -43,10 +42,6 @@ export default {
           type: String,
         },
         clientId: {
-          type: String,
-          required: true,
-        },
-        cardDomain: {
           type: String,
           required: true,
         },
