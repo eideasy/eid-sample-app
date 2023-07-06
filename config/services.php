@@ -30,4 +30,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'amplitude' => [
+        'api_key' => env('AMPLITUDE_API_KEY'),
+        'enabled' => env('EVENT_TRACKING_ENABLED', true),
+    ],
 ];

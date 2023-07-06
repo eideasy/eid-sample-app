@@ -1,4 +1,8 @@
 {
-    "/js/app.js": "/js/app.js?id=5bc8e6523336a99d2c7e",
-    "/css/style.css": "/css/style.css?id=4817dbfdba01942ba9e8"
+    "/js/analytics-instrumentation.js": "/js/analytics-instrumentation.js?id=02a3160d7a21183c3252",
+    "/js/analytics-instrumentation.js.map": "/js/analytics-instrumentation.js.map?id=c8a961b63058ebe85ca3",
+    "/js/app.js": "/js/app.js?id=cdac9dd9f0f4f7ab3460",
+    "/css/style.css": "/css/style.css?id=bc0859fbb7f407acd5f7",
+    "/js/app.js.map": "/js/app.js.map?id=da17b69cf78595ef7e94",
+    "/css/style.css.map": "/css/style.css.map?id=d1fe262636006cadbfa3"
 }

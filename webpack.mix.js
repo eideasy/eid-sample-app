@@ -12,4 +12,5 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js/app.js').version();
+mix.js('resources/js/analytics/analytics-instrumentation.js', 'public/js').version().sourceMaps();
 mix.sass('resources/sass/app.scss', 'public/css/style.css').version();
