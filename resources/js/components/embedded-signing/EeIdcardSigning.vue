@@ -4,19 +4,19 @@
 
 <script>
 export default {
-  props: {
-      doc_id: {
-          type: String,
-      },
-      clientId: {
-          type: String,
-          required: true,
-      },
-      apiUrl: {
-          type: String,
-          required: true,
-      },
-  },
+    props: {
+        doc_id: {
+            type: String,
+        },
+        clientId: {
+            type: String,
+            required: true,
+        },
+        apiUrl: {
+            type: String,
+            required: true,
+        },
+    },
     data() {
         return {
             token: null,
