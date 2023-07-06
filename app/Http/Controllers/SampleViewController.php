@@ -10,10 +10,7 @@ class SampleViewController extends Controller
 {
     public function getEmbeddedIdentification()
     {
-        return view('embedded-identification', [
-            'client_id' => config('eideasy.client_id'),
-            'card_domain' => config('eideasy.card_domain'),
-        ]);
+        return view('embedded-identification');
     }
 
     public function signAsiceFile()
