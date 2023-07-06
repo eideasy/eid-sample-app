@@ -16,7 +16,12 @@
             </div>
         </div>
         <transition name="bounce" mode="out-in">
-            <component :is="method" :doc_id="this.doc_id"></component>
+          <component :is="method"
+                     :doc_id="doc_id"
+                     :client-id="clientId"
+                     :cardDomain="cardDomain"
+                     :apiUrl="apiUrl"
+          ></component>
         </transition>
     </div>
 </template>
@@ -33,7 +38,23 @@ Vue.component('mobile-id-signing', MobileIdSigning);
 Vue.component('ee-id-card-signing', IdcardSigning);
 
 export default {
-    props: ['doc_id'],
+    props: {
+        doc_id: {
+          type: String,
+        },
+        clientId: {
+          type: String,
+          required: true,
+        },
+        cardDomain: {
+          type: String,
+          required: true,
+        },
+        apiUrl: {
+          type: String,
+          required: true,
+        },
+    },
     data() {
         return {
             'method': null,

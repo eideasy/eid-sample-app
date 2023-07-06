@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         View::share([
             'client_id' => config('eideasy.client_id'),
             'card_domain' => config('eideasy.card_domain'),
+            'api_url' => config('eideasy.api_url'),
         ]);
     }
 }
