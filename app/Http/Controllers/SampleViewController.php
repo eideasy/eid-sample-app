@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
 {
-
     public function getEmbeddedIdentification()
     {
         return view('embedded-identification');

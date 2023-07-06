@@ -25,7 +25,12 @@
         @endforeach
 
         <div id="app">
-            <embedded-signing doc_id="{{$doc_id}}"></embedded-signing>
+            <embedded-signing
+                    doc_id="{{$doc_id}}"
+                    client-id="{{ $client_id }}"
+                    card-domain="{{ $card_domain }}"
+                    api-url="{{ $api_url }}"
+            ></embedded-signing>
         </div>
     @endif
 
