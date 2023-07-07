@@ -1,7 +1,7 @@
 <footer class="footer">
     <div class="footer__row">
         <div>
-            Built with ❤️ by <a href="https://eideasy.com/" target="_blank">eID Easy</a>
+            Built with ❤️ by <a href="https://eideasy.com/" target="_blank" data-event-name="signing_demo_eideasy_clicked">eID Easy</a>
         </div>
         <div class="footer__col_spacer">-</div>
         <div>
@@ -9,11 +9,11 @@
         </div>
         <div class="footer__col_spacer">-</div>
         <div>
-            <a target="_blank" href="https://eideasy.com/privacy-policy/">Privacy Policy</a>
+            <a target="_blank" href="https://eideasy.com/privacy-policy/" data-event-name="signing_demo_privacy_policy_clicked">Privacy Policy</a>
         </div>
         <div class="footer__col_spacer">-</div>
         <div>
-            <a target="_blank" href="https://eideasy.com/terms-of-service/">Terms &amp; Conditions</a>
+            <a target="_blank" href="https://eideasy.com/terms-of-service/" data-event-name="signing_demo_terms_and_conditions_clicked">Terms &amp; Conditions</a>
         </div>
     </div>
 

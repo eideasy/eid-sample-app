@@ -22,48 +22,48 @@
         {{csrf_field()}}
         <div class="form-group">
             <label for="unsigned_file">Files to be signed</label>
-            <input name="unsigned_file[]" multiple type="file" class="form-control-file" id="unsigned_file">
+            <input name="unsigned_file[]" multiple type="file" class="form-control-file" id="unsigned_file" data-event-name="signing_demo_upload_file_clicked">
         </div>
         <div class="form-group">
             <label for="redirect_uri">Optional: Where to redirect after signing completed</label>
-            <input name="redirect_uri" type="url" class="form-control" id="redirect_uri">
+            <input name="redirect_uri" type="url" class="form-control" id="redirect_uri" data-event-name-onchange="signing_demo_redirect_url_typed">
         </div>
         <div class="row">
             <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_email">Optional: E-mail for simple signature</label>
-                <input name="simple_email" type="email" class="form-control" id="simple_email">
+                <input name="simple_email" type="email" class="form-control" id="simple_email" data-event-name-onchange="signing_demo_simple_signature_email_changed">
             </div>
             <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_sms">Optional: Phone for SMS simple signature</label>
-                <input name="simple_sms" type="text" class="form-control" id="simple_sms">
+                <input name="simple_sms" type="text" class="form-control" id="simple_sms" data-event-name-onchange="signing_demo_phone_changed">
             </div>
         </div>
         <div class="row">
             <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_firstname">Optional: Firstname (unverified)</label>
-                <input name="simple_firstname" type="text" class="form-control" id="simple_firstname">
+                <input name="simple_firstname" type="text" class="form-control" id="simple_firstname" data-event-name-onchange="signing_demo_first_name_changed">
             </div>
             <div class="form-group col-md-6 col-sm-12">
                 <label for="simple_lastame">Optional: Lastname (unverified)</label>
-                <input name="simple_lastname" type="text" class="form-control" id="simple_lastname">
+                <input name="simple_lastname" type="text" class="form-control" id="simple_lastname" data-event-name-onchange="signing_demo_last_name_changed">
             </div>
         </div>
         <div class="row">
             <div class="form-group col-md-4 col-sm-12">
                 <label for="pdf_x">Optional: PDF visual X coordinate (A4 max 595)</label>
-                <input name="pdf_x" type="number" class="form-control" id="pdf_x">
+                <input name="pdf_x" type="number" class="form-control" id="pdf_x" data-event-name-onchange="signing_demo_pdf_x_coordinate_changed">
             </div>
             <div class="form-group col-md-4 col-sm-12">
                 <label for="pdf_y">Optional: PDF visual Y coordinate (A4 max 842)</label>
-                <input name="pdf_y" type="text" class="form-control" id="pdf_y">
+                <input name="pdf_y" type="text" class="form-control" id="pdf_y" data-event-name-onchange="signing_demo_pdf_y_coordinate_changed">
             </div>
             <div class="form-group col-md-4 col-sm-12">
                 <label for="pdf_page">Optional: PDF page number (first page is 0)</label>
-                <input name="pdf_page" type="text" class="form-control" id="pdf_page">
+                <input name="pdf_page" type="text" class="form-control" id="pdf_page" data-event-name-onchange="signing_demo_pdf_page_number_changed">
             </div>
         </div>
         <div class="form-group form-check col-md-3">
-            <input class="form-check-input" type="checkbox" name="hide_pdf_visual" id="sign-locally">
+            <input class="form-check-input" type="checkbox" name="hide_pdf_visual" id="sign-locally" data-event-name="signing_demo_hide_visual_signature_clicked">
             <label class="form-check-label" for="hide_pdf_visual">
                 Hide PDF visual signature
             </label>
@@ -82,26 +82,26 @@
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="local">
+            <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="local" data-event-name="signing_demo_signature_creation_changed">
             <label class="form-check-label" for="sign-locally">
                 Sign locally - UX fully under your control but more work for you.
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="digest">
+            <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="digest" data-event-name="signing_demo_signature_creation_changed">
             <label class="form-check-label" for="sign-locally">
                 Sign locally using only hashcodes/digests - Good for privacy sensitive applications. Only SHA-256 hashes
                 are send out from your application for signature and nobody else has any idea what is being signed
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="create-eseal" value="eseal">
+            <input class="form-check-input" type="radio" name="signType" id="create-eseal" value="eseal" data-event-name="signing_demo_signature_creation_changed">
             <label class="form-check-label" for="create-eseal">
                 Create e-Seal (Sign automatically using configured document signing certificate)
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="multisign" value="multisign">
+            <input class="form-check-input" type="radio" name="signType" id="multisign" value="multisign" data-event-name="signing_demo_signature_creation_changed">
             <label class="form-check-label" for="multisign">
                 Request signatures from multiple people. You will be redirected to a page where you can enter the
                 names and email addresses of all the signers.
@@ -111,7 +111,7 @@
 
         <h3>Container type</h3>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice"
+            <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice" data-event-name="signing_demo_container_type_changed"
                    checked>
             <label class="form-check-label" for="asice-selection">
                 Create an .asice container. Very powerful signature type, allows to sign any type of file and multiple
@@ -119,14 +119,14 @@
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="containerType" id="pdf-selection" value="pdf">
+            <input class="form-check-input" type="radio" name="containerType" id="pdf-selection" value="pdf" data-event-name="signing_demo_container_type_changed">
             <label class="form-check-label" for="pdf-selection">
                 Sign PDF. Signature can be verified with Adobe Reader and only one PDF is allowed. Only first uploaded
                 file is used and it must be PDF.
             </label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Sign now</button>
+        <button type="submit" class="btn btn-primary" data-event-name="signing_demo_sign_now_clicked">Sign now</button>
     </form>
     <hr>
     <ul>
