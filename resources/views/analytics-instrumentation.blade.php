@@ -1,7 +1,6 @@
 <script
     src="{{ mix('js/analytics-instrumentation.js') }}"
     data-api-key="{{ config('services.amplitude.api_key') }}"
-    data-enabled="{{ config('services.amplitude.enabled') }}"
 ></script>
 <script>
     document.addEventListener('copy', function() {
