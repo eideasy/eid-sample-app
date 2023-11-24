@@ -20,7 +20,7 @@ class OidcClientController
 
     public function returnCallback(): \Illuminate\View\View
     {
-        // authenticate() method is necessary because the ridirection is handled in it.
+        // authenticate() method is necessary because the redirection is handled in it.
         $this->oidc->authenticate();
         $userData = collect($this->oidc->getVerifiedClaims());
 
