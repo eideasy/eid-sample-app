@@ -15,6 +15,7 @@
         "eideasy/eideasy-php": "^1.18",
         "firebase/php-jwt": "^6.3",
         "guzzlehttp/guzzle": "^7.0",
+        "jumbojett/openid-connect-php": "^0.9.10",
         "laravel/framework": "^10.0",
         "laravel/tinker": "^2.7"
     },
