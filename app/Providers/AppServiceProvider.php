@@ -8,6 +8,9 @@ use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
 use Facile\OpenIDClient\Issuer\IssuerBuilder;
 use Facile\OpenIDClient\Issuer\Metadata\Provider\MetadataProviderBuilder;
+use Facile\OpenIDClient\Service\AuthorizationService;
+use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
+use Facile\OpenIDClient\Token\IdTokenVerifierBuilder;
 use Illuminate\Cache\Repository;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -77,6 +80,18 @@ class AppServiceProvider extends ServiceProvider
                 ->build();
 
             return $client;
+        });
+
+        $this->app->bind(AuthorizationService::class, function($app) {
+            $tokenVerifier = new IdTokenVerifierBuilder();
+            // Set leeway to 1 second because we might have a float timestamp instead of int.
+            $tokenVerifier->setClockTolerance(1);
+
+            $builder = new AuthorizationServiceBuilder();
+            $authorizationService = $builder
+                ->setIdTokenVerifierBuilder($tokenVerifier)
+                ->build();
+            return $authorizationService;
         });
 
 //        $middleware = new SessionCookieMiddleware();

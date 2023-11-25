@@ -6,33 +6,25 @@ namespace App\Http\Controllers;
 
 use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Service\AuthorizationService;
-use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
-use Facile\OpenIDClient\Token\IdTokenVerifierBuilder;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\ServerRequest;
-use GuzzleHttp\Psr7\Stream;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Jumbojett\OpenIDConnectClient;
+use Illuminate\Support\Str;
 
 class OidcClientController
 {
-    public function __construct(private OpenIDConnectClient $oidc)
+    public function __construct(protected ClientInterface $client, protected AuthorizationService $authorizationService)
     {
     }
 
-    public function startAuthentication(ClientInterface $client): mixed
+    public function startAuthentication(): mixed
     {
-        // Redirection happens in the library.
-//        $this->oidc->authenticate();
-        $authorizationService = (new AuthorizationServiceBuilder())->build();
-        $redirectAuthorizationUri = $authorizationService->getAuthorizationUri(
-            $client,
+        $redirectAuthorizationUri = $this->authorizationService->getAuthorizationUri(
+            $this->client,
             [
                 'scope' => implode(' ', ['openid', 'profile']),
                 'response_type' => 'code',
-                'nonce' => '1234567890',
-                'state' => '1234567890',
+                'nonce' => Str::random(32),
+                'state' => Str::random(32),
             ]
         );
         Log::info('Redirecting to ' . $redirectAuthorizationUri);
@@ -40,19 +32,21 @@ class OidcClientController
         return redirect($redirectAuthorizationUri);
     }
 
-    public function returnCallback(Request $request, ClientInterface $client): \Illuminate\View\View
+    public function returnCallback(Request $request): \Illuminate\View\View
     {
-        $tokenVerifier = new IdTokenVerifierBuilder();
-        // Set leeway to 1 second because we might have a float timestamp instead of int.
-        $tokenVerifier->setClockTolerance(1);
+        // Todo.update: validate state and nonce using the library
 
-        $builder = new AuthorizationServiceBuilder();
-        $authorizationService = $builder
-            ->setIdTokenVerifierBuilder($tokenVerifier)
-            ->build();
+        // Let's validate state in session
+        $state = $request->session()->get('state');
 
-        $tokenSet = $authorizationService
-            ->callback($client, $request->all());
+        if ($state !== $request->get('state')) {
+            throw new \RuntimeException('Invalid state');
+        }
+
+        $tokenSet = $this->authorizationService->callback($this->client, $request->all());
+
+        // Let's clean up session after we have validated state
+        $request->session()->forget('state');
 
         $idToken = $tokenSet->getIdToken();
 
