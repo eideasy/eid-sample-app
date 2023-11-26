@@ -74,7 +74,8 @@ class AppServiceProvider extends ServiceProvider
             $clientMetadata = ClientMetadata::fromArray([
                 'client_id' => config('eideasy.client_id'),
                 'client_secret' => config('eideasy.secret'),
-                'token_endpoint_auth_method' => 'client_secret_basic', // the auth method tor the token endpoint
+                // At the full release phase, eID Easy will support 'client_secret_jwt' and 'private_key_jwt' later.
+                'token_endpoint_auth_method' => 'client_secret_post', // the auth method for the token endpoint
                 'redirect_uris' => [
                     URL::route('oidc.callback'),
                 ],
@@ -99,10 +100,5 @@ class AppServiceProvider extends ServiceProvider
                 ->build();
             return $authorizationService;
         });
-
-//        $middleware = new SessionCookieMiddleware();
-//        $authorizationService = (new AuthorizationServiceBuilder())->build();
-//        $this->app->instance(AuthorizationServiceBuilder::class, $authorizationService);
-//        $middleware = new AuthRedirectHandler($authorizationService);
     }
 }
