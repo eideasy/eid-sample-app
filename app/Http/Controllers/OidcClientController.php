@@ -6,9 +6,12 @@ namespace App\Http\Controllers;
 
 use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Service\AuthorizationService;
+use Facile\OpenIDClient\Session\AuthSessionInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class OidcClientController
 {
@@ -16,41 +19,35 @@ class OidcClientController
     {
     }
 
-    public function startAuthentication(Request $request): mixed
+    public function startAuthentication(AuthSessionInterface $authSession): mixed
     {
+        $authSession->setState($state = Str::random(32));
+        $authSession->setNonce($nonce = Str::random(32));
         $redirectAuthorizationUri = $this->authorizationService->getAuthorizationUri(
             $this->client,
             [
                 'scope' => implode(' ', ['openid', 'profile']),
                 'response_type' => 'code',
-                'nonce' => Str::random(32),
-                'state' => $state = Str::random(32),
+                'nonce' => $nonce,
+                'state' => $state,
             ]
         );
-
-        // store state in session. We will need it later to validate state
-        $request->session()->put('oidc_state', $state);
 
         Log::info('Redirecting to ' . $redirectAuthorizationUri);
 
         return redirect($redirectAuthorizationUri);
     }
 
-    public function returnCallback(Request $request): \Illuminate\View\View
-    {
-        // Todo.update: validate state and nonce using the library
-
-        // Let's validate state in session
-        $state = $request->session()->get('oidc_state');
-
-        if ($state !== $request->get('state')) {
-            throw new \RuntimeException('Invalid state');
-        }
-
-        $tokenSet = $this->authorizationService->callback($this->client, $request->all());
-
-        // Let's clean up session after we have validated state
-        $request->session()->forget('oidc_state');
+    public function returnCallback(
+        Request $request,
+        AuthSessionInterface $authSession
+    ): View {
+        $tokenSet = $this->authorizationService->callback(
+            $this->client,
+            $request->all(),
+            null,
+            $authSession,
+        );
 
         $idToken = $tokenSet->getIdToken();
 
@@ -60,6 +57,12 @@ class OidcClientController
             throw new \RuntimeException('Unauthorized');
         }
 
-        return view('welcome', ['authorizeUri' => '', "userData" => $userData]);
+        return view(
+            'welcome', [
+                'authorizeUri' => '',
+                'userData' => Arr::except($userData, [
+                    "iss", "sub", "aud", "exp", "iat", "jti", "auth_time", "nonce",
+                ])
+            ]);
     }
 }

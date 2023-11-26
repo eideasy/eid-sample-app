@@ -10,8 +10,10 @@ use Facile\OpenIDClient\Issuer\IssuerBuilder;
 use Facile\OpenIDClient\Issuer\Metadata\Provider\MetadataProviderBuilder;
 use Facile\OpenIDClient\Service\AuthorizationService;
 use Facile\OpenIDClient\Service\Builder\AuthorizationServiceBuilder;
+use Facile\OpenIDClient\Session\AuthSessionInterface;
 use Facile\OpenIDClient\Token\IdTokenVerifierBuilder;
 use Illuminate\Cache\Repository;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
             'card_domain' => config('eideasy.card_domain'),
             'api_url' => config('eideasy.api_url'),
         ]);
+
+        $this->app->bind(AuthSessionInterface::class, function($app) {
+            return new \App\Services\OidcClient\AuthenticationSession($app->make(Session::class));
+        });
 
         $this->prepareOidcClient();
 
