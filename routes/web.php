@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CscApiController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OidcClientController;
 use App\Http\Controllers\SampleViewController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +41,8 @@ Route::post('/sign-via-csc-api', [CscApiController::class, 'startCscApiSignature
 Route::get('/csc-service-return', [CscApiController::class, 'credential']);
 Route::get('/csc-signature', [CscApiController::class, 'signature']);
 Route::get('/download-csc-api-signed-file', [CscApiController::class, 'downloadSignedFile']);
+
+Route::group(['prefix' => 'oidc'], function () {
+    Route::get('/start', [OidcClientController::class, 'startAuthentication'])->name('oidc.start');
+    Route::get('/callback', [OidcClientController::class, 'returnCallback'])->name('oidc.callback');
+});
