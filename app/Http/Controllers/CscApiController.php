@@ -83,7 +83,7 @@ class CscApiController extends Controller
                 Log::error("Pades preparation failed", $padesResponse);
                 return response("Pades preparation failed");
             }
-            $rawDigests[] = $padesResponse['digest']; // Modified PDF digest will be signed.
+            $rawDigests[$fileIndex] = $padesResponse['digest']; // Modified PDF digest will be signed.
             $signatureTime = $padesResponse['signatureTime'];
 
             $fileIndexes[] = $fileIndex;
@@ -149,7 +149,7 @@ class CscApiController extends Controller
 
         $signingTime = null;
         $preparedDigests = [];
-        foreach ($rawDigests as $rawDigest) {
+        foreach ($rawDigests as $fileIndex => $rawDigest) {
             $preparedContainerData = $this->prepareCadesContainer(
                 $certificate,
                 [
@@ -159,7 +159,7 @@ class CscApiController extends Controller
                 ]
             );
             $signingTime = $preparedContainerData['signingTime'];
-            $preparedDigests[] = $preparedContainerData['signedInfoDigest'];
+            $preparedDigests[$fileIndex] = $preparedContainerData['signedInfoDigest'];
         }
 
         Cache::put("credentialID-$processId", $credentialID);
@@ -192,7 +192,7 @@ class CscApiController extends Controller
         $result = $this->signHash(
             $accessToken,
             $credentialID,
-            $digests,
+            array_values($digests),
             $sadToken,
             $signAlgo
         );
@@ -204,11 +204,11 @@ class CscApiController extends Controller
 
         $rawDigests = Cache::get("rawDigests-$processId");
         $cadesSignatures = [];
-        foreach ($signatures as $key => $signature) {
+        foreach ($signatures as $fileIndex => $signature) {
             $finalizedSignatureData = $this->finalizeCadesSignature(
                 [
                     'fileName' => Cache::get("fileName-$processId"),
-                    'fileContent' => $rawDigests[$key],
+                    'fileContent' => $rawDigests[$fileIndex],
                     'mimeType' => Cache::get("mimeType-$processId"),
                 ],
                 $signature,
@@ -216,7 +216,7 @@ class CscApiController extends Controller
                 Cache::get("preparedSigningTime-$processId"),
                 $certificate
             );
-            $cadesSignatures[] = $finalizedSignatureData['fileContent'];
+            $cadesSignatures[$fileIndex] = $finalizedSignatureData['fileContent'];
         }
 
         Cache::put("signatures-$processId", $cadesSignatures);
@@ -425,10 +425,10 @@ class CscApiController extends Controller
         $fileIndexes = Cache::pull("fileIndexes-$processId");
 
         $signedFilesContent = [];
-        foreach ($fileIndexes as $key => $fileIndex) {
+        foreach ($fileIndexes as $fileIndex) {
             $unsignedFile = Storage::get("/unsigned/$processId/$fileIndex/$fileName");
             Log::info('downloadSignedFile signatureTime', compact('signatureTime'));
-            $padesResponse = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signatures[$key], null);
+            $padesResponse = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signatures[$fileIndex], null);
 
             $signedFilesContent[] = base64_decode($padesResponse['signedFile']);
         }
