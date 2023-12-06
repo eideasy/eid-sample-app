@@ -74,7 +74,6 @@ class CscApiController extends Controller
 
         $signatureTimes = [];
         $rawDigests = [];
-        $fileIndexes = [];
         foreach ($request->file('unsigned_file') as $fileIndex => $fileInfo) {
             $fileContent = file_get_contents($fileInfo->path());
 
@@ -86,13 +85,11 @@ class CscApiController extends Controller
             $rawDigests[$fileIndex] = $padesResponse['digest']; // Modified PDF digest will be signed.
             $signatureTimes[$fileIndex] = $padesResponse['signatureTime'];
 
-            $fileIndexes[] = $fileIndex;
             Storage::put("/unsigned/$processId/$fileIndex/$fileName", $fileContent);
         }
 
         Log::info('startCscApiSignature signatureTimes', compact('signatureTimes'));
 
-        Cache::put("fileIndexes-$processId", $fileIndexes);
         Cache::put("rawDigests-$processId", $rawDigests);
         Cache::put("signatureTimes-$processId", $signatureTimes);
         Cache::put("fileName-$processId", $fileName);
@@ -416,22 +413,21 @@ class CscApiController extends Controller
 
     public function downloadSignedFile(Request $request)
     {
-        $processId = $request->input('file_id');
-        $signatures = Cache::pull("signatures-$processId");
         // Assemble signed file and make sure its in binary form before downloading.
+        $processId = $request->input('file_id');
 
+        $signatures = Cache::pull("signatures-$processId");
         $fileName = Cache::pull("fileName-$processId");
         $signatureTimes = Cache::pull("signatureTimes-$processId");
-        $fileIndexes = Cache::pull("fileIndexes-$processId");
         Log::info('downloadSignedFile signatureTime', compact('signatureTimes'));
 
         $signedFilesContent = [];
-        foreach ($fileIndexes as $fileIndex) {
+        foreach ($signatureTimes as $fileIndex => $signatureTime) {
             $unsignedFile = Storage::get("/unsigned/$processId/$fileIndex/$fileName");
 
             $padesResponse = $this->pades->addSignaturePades(
                 $unsignedFile,
-                $signatureTimes[$fileIndex],
+                $signatureTime,
                 $signatures[$fileIndex],
                 null
             );
@@ -447,16 +443,14 @@ class CscApiController extends Controller
             $downloadFileName = str_replace(',', '', $downloadFileName);
             $downloadFileName = iconv('utf-8', 'ascii//TRANSLIT', $downloadFileName);
 
+            info("Signed file downloaded");
             return response()->download($absolutePath, $downloadFileName);
         }
 
         info("Signed file downloaded");
-
-        $headers = [
-            'Content-type'        => 'application/vnd.etsi.asic-e+zip',
+        return Response::make($signedFilesContent[0], 200, [
+            'Content-type' => 'application/vnd.etsi.asic-e+zip',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-        ];
-
-        return Response::make($signedFilesContent, 200, $headers);
+        ]);
     }
 }
