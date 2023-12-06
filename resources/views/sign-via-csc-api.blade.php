@@ -22,7 +22,7 @@
         {{csrf_field()}}
         <div class="form-group">
             <label for="unsigned_file">File to be signed</label>
-            <input name="unsigned_file" type="file" class="form-control-file" id="unsigned_file">
+            <input name="unsigned_file[]" multiple type="file" class="form-control-file" id="unsigned_file">
         </div>
 
         <button type="submit" class="btn btn-primary">Sign now</button>
