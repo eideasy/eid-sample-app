@@ -37,11 +37,13 @@ class ZipService
         }
 
         $absolutePath = $this->tempFileStorageService->createTempFolderIfNeeded($filePath);
+        $fileNameWithOutExtension = str_replace('.pdf', '', $fileName);
 
         $zip = new ZipArchive();
         $zip->open($absolutePath, ZipArchive::CREATE);
-        foreach ($files as $name => $file) {
-            $zip->addFromString(((string) $name) . '.pdf', $file);
+        foreach ($files as $index => $file) {
+            $pdfFileName = $fileNameWithOutExtension . ((string) $index) . '.pdf';
+            $zip->addFromString($pdfFileName, $file);
         }
         $zip->close();
 

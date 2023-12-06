@@ -72,7 +72,7 @@ class CscApiController extends Controller
         $fileName = $fileInfo->getClientOriginalName();
         $mimeType = $fileInfo->getMimeType();
 
-        $signatureTime = null;
+        $signatureTimes = [];
         $rawDigests = [];
         $fileIndexes = [];
         foreach ($request->file('unsigned_file') as $fileIndex => $fileInfo) {
@@ -84,17 +84,17 @@ class CscApiController extends Controller
                 return response("Pades preparation failed");
             }
             $rawDigests[$fileIndex] = $padesResponse['digest']; // Modified PDF digest will be signed.
-            $signatureTime = $padesResponse['signatureTime'];
+            $signatureTimes[$fileIndex] = $padesResponse['signatureTime'];
 
             $fileIndexes[] = $fileIndex;
             Storage::put("/unsigned/$processId/$fileIndex/$fileName", $fileContent);
         }
 
-        Log::info('startCscApiSignature signatureTime', compact('signatureTime'));
+        Log::info('startCscApiSignature signatureTimes', compact('signatureTimes'));
 
         Cache::put("fileIndexes-$processId", $fileIndexes);
         Cache::put("rawDigests-$processId", $rawDigests);
-        Cache::put("signatureTime-$processId", $signatureTime);
+        Cache::put("signatureTimes-$processId", $signatureTimes);
         Cache::put("fileName-$processId", $fileName);
         Cache::put("mimeType-$processId", $mimeType);
 
@@ -421,14 +421,20 @@ class CscApiController extends Controller
         // Assemble signed file and make sure its in binary form before downloading.
 
         $fileName = Cache::pull("fileName-$processId");
-        $signatureTime = Cache::pull("signatureTime-$processId");
+        $signatureTimes = Cache::pull("signatureTimes-$processId");
         $fileIndexes = Cache::pull("fileIndexes-$processId");
+        Log::info('downloadSignedFile signatureTime', compact('signatureTimes'));
 
         $signedFilesContent = [];
         foreach ($fileIndexes as $fileIndex) {
             $unsignedFile = Storage::get("/unsigned/$processId/$fileIndex/$fileName");
-            Log::info('downloadSignedFile signatureTime', compact('signatureTime'));
-            $padesResponse = $this->pades->addSignaturePades($unsignedFile, $signatureTime, $signatures[$fileIndex], null);
+
+            $padesResponse = $this->pades->addSignaturePades(
+                $unsignedFile,
+                $signatureTimes[$fileIndex],
+                $signatures[$fileIndex],
+                null
+            );
 
             $signedFilesContent[] = base64_decode($padesResponse['signedFile']);
         }
