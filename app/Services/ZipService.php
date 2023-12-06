@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Jobs\DeleteTempFileJob;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Ramsey\Uuid\Uuid;
@@ -51,8 +50,6 @@ class ZipService
         $fileName = str_replace('.pdf', '', $fileName) . '.zip';
         $fileName = str_replace(',', '', $fileName);
         $fileName = iconv('utf-8', 'ascii//TRANSLIT', $fileName);
-
-//        DeleteTempFileJob::dispatch($filePath)->delay(now()->addMinutes(5));
 
         return new ZipDto($fileName, $filePath);
     }
