@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', 'HomeController@getWelcome');
 
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
-Route::get('/embedded-identification', 'SampleViewController@getEmbeddedIdentification');
 
 Route::get('/login-widget', 'SampleViewController@loginWidget');
 
