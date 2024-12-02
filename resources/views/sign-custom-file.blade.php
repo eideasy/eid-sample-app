@@ -84,7 +84,7 @@
         <div class="form-check">
             <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="local" data-event-name="signing_demo_signature_creation_changed">
             <label class="form-check-label" for="sign-locally">
-                Sign locally - UX fully under your control but more work for you.
+                API Flow - UX fully under your control but requires more integration.
             </label>
         </div>
         <div class="form-check">
