@@ -38,6 +38,7 @@ class SampleViewController extends Controller
     {
         $fileId = Cache::get("file_id-$request->doc_id");
         $metadata = Cache::get("prepared-files-$fileId", []);
+        $availableMethods = Cache::get("available_methods-$request->doc_id", []);
         $files = [];
 
         foreach ($metadata as $meta) {
@@ -48,6 +49,7 @@ class SampleViewController extends Controller
 
         $data = [
             'client_id' => config('eideasy.client_id'),
+            'available_methods' => $availableMethods,
             'doc_id' => $request->doc_id,
             'file_id' => $fileId,
             'files' => $files

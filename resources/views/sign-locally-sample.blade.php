@@ -44,7 +44,7 @@
                     <widget
                         :doc-id="'{{ $doc_id }}'"
                         :client-id="'{{ $client_id }}'"
-                        :base-url="'{{ url('/') }}'"
+                        :enabled-methods='@json($available_methods)'
                         @success="handleSuccess"
                         @fail="handleFail"
                     ></widget>
