@@ -38,16 +38,29 @@ class SampleViewController extends Controller
     {
         $fileId = Cache::get("file_id-$request->doc_id");
         $metadata = Cache::get("prepared-files-$fileId", []);
+        $availableMethods = Cache::get("available_methods-$request->doc_id", []);
         $files = [];
+
         foreach ($metadata as $meta) {
             $file = $meta;
             $file['fileContent'] = base64_encode(Storage::get("/unsigned/$fileId/" . $meta['fileName']));
             $files[] = $file;
         }
-        return view('sign-locally-sample', ['doc_id' => $request->doc_id, 'files' => $files]);
+
+        $data = [
+            'base_url' => config('eideasy.api_url'),
+            'client_id' => config('eideasy.client_id'),
+            'available_methods' => $availableMethods,
+            'doc_id' => $request->doc_id,
+            'file_id' => $fileId,
+            'files' => $files
+        ];
+
+        return view('sign-locally-sample', $data);
     }
 
-    public function signViaCscApiView() {
+    public function signViaCscApiView()
+    {
         return view('sign-via-csc-api');
     }
 }

@@ -1,8 +1,30 @@
 /*!
+ * Signature Pad v4.1.4 | https://github.com/szimek/signature_pad
+ * (c) 2022 Szymon Nowak | Released under the MIT license
+ */
+
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <http://feross.org>
+ * @license  MIT
+ */
+
+/*!
  * Vue.js v2.6.14
  * (c) 2014-2021 Evan You
  * Released under the MIT License.
  */
+
+/*! For license information please see eideasy-browser-client.js.LICENSE.txt */
+
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/**
+  * vue-custom-element v3.2.14
+  * (c) 2020 Karol Fabjańczuk
+  * @license MIT
+  */
 
 /**
  * @license
