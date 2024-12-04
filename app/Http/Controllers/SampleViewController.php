@@ -48,6 +48,7 @@ class SampleViewController extends Controller
         }
 
         $data = [
+            'base_url' => config('eideasy.api_url'),
             'client_id' => config('eideasy.client_id'),
             'available_methods' => $availableMethods,
             'doc_id' => $request->doc_id,

@@ -4,8 +4,19 @@ import '@eid-easy/eideasy-widget';
 export default {
     props: {
         docId: String,
+        baseUrl: String,
         clientId: String,
-        enabledMethods: Array,
+        availableMethods: Array,
+    },
+    data() {
+        return {
+            apiEndpoints: {
+                base: () => this.baseUrl,
+            },
+            enabledMethods: {
+                signature: this.availableMethods,
+            }
+        };
     },
     methods: {
         onSuccess(data) {
@@ -27,7 +38,8 @@ export default {
             :sandbox="true"
             :client-id="clientId"
             :doc-id="docId"
-            :enabledMethods.signature="enabledMethods"
+            :api-endpoints.prop="apiEndpoints"
+            :enabled-methods.prop="enabledMethods"
             :on-success.prop="(data) => onSuccess(data)"
             :on-fail.prop="(error) => onFail(error)"
         />
