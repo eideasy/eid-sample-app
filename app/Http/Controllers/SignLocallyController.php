@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Services\EidEasyApiService;
+use App\Services\TempFileStorageService;
+use App\Services\ZipService;
 use EidEasy\Signatures\Asice;
 use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
@@ -20,8 +22,12 @@ class SignLocallyController extends Controller
     protected $eidEasyApi;
     protected $pades;
 
-    public function __construct(Client $client, Pades $pades)
-    {
+    public function __construct(
+        protected TempFileStorageService $tempFileStorageService,
+        protected ZipService $zipService,
+        Client $client,
+        Pades $pades,
+    ) {
         $this->client = $client;
 
         $this->eidEasyApi = new EidEasyApiService(
@@ -130,7 +136,6 @@ class SignLocallyController extends Controller
                 'time' => now()->toIso8601String()
             ],
             'show_visual'        => !$request->boolean('hide_pdf_visual'),
-            'return_available_methods' => true,
         ];
 
         $signerContacts = [];
@@ -180,7 +185,6 @@ class SignLocallyController extends Controller
         Cache::put("file_id-$docId", $fileId);
         Cache::put("signType-$fileId", $signType);
         Cache::put("containerType-$fileId", $containerType);
-        Cache::put("available_methods-$docId", $data['available_methods']);
 
         info("File prepared for signing file_id=$fileId, doc_id=$docId");
 
@@ -235,8 +239,25 @@ class SignLocallyController extends Controller
         }
 
         $data = $this->eidEasyApi->downloadSignedFile($docId);
+        $fileName = $data['filename'];
 
-        $fileName           = $data['filename'];
+        $signedFilesContent = [];
+        foreach ($data['signed_files'] as $file) {
+            $signedFilesContent[] = base64_decode($file['contents']);
+        }
+
+        if (count($signedFilesContent) > 1) {
+            $zipDto = $this->zipService->zipPdfs($fileName, $signedFilesContent);
+            $absolutePath = $this->tempFileStorageService->absolutePath($zipDto->getFilePath());
+
+            $downloadFileName = str_replace('.pdf', '', $fileName) . '.zip';
+            $downloadFileName = str_replace(',', '', $downloadFileName);
+            $downloadFileName = iconv('utf-8', 'ascii//TRANSLIT', $downloadFileName);
+
+            info("Signed file downloaded");
+            return response()->download($absolutePath, $downloadFileName);
+        }
+
         $signedFileContents = $data['signed_file_contents'];
 
         // Assemble signed file and make sure its in binary form before downloading.
