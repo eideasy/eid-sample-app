@@ -136,6 +136,7 @@ class SignLocallyController extends Controller
                 'time' => now()->toIso8601String()
             ],
             'show_visual'        => !$request->boolean('hide_pdf_visual'),
+            'return_available_methods' => true,
         ];
 
         $signerContacts = [];
@@ -185,6 +186,7 @@ class SignLocallyController extends Controller
         Cache::put("file_id-$docId", $fileId);
         Cache::put("signType-$fileId", $signType);
         Cache::put("containerType-$fileId", $containerType);
+        Cache::put("available_methods-$docId", $data['available_methods']);
 
         info("File prepared for signing file_id=$fileId, doc_id=$docId");
 
