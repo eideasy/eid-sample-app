@@ -243,6 +243,14 @@ class SignLocallyController extends Controller
         $data = $this->eidEasyApi->downloadSignedFile($docId);
         $fileName = $data['filename'];
 
+        if (empty($data['signed_files'])) {
+            Log::error('Signed files are missing', [
+                'doc_id' => $docId,
+                'client_id' => config('eideasy.eid_test_client_id'),
+            ]);
+            throw new \Exception('Signed files are missing');
+        }
+
         $signedFilesContent = [];
         foreach ($data['signed_files'] as $file) {
             $signedFilesContent[] = base64_decode($file['contents']);
