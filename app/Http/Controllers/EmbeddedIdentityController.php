@@ -32,6 +32,8 @@ class EmbeddedIdentityController extends Controller
             return $this->startFrejaIdLogin($request);
         } elseif (in_array($method, [EidEasyParams::EE_MOBILEID_LOGIN, EidEasyParams::LT_MOBILEID_LOGIN])) {
             return $this->startMobileidLogin($request);
+        } elseif (str_contains($method, "web-eid-login")) {
+            return $this->startWebEidLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -59,6 +61,8 @@ class EmbeddedIdentityController extends Controller
             EidEasyParams::RS_IDCARD_LOGIN
         ])) {
             return $this->finishIdCardLogin($request);
+        } elseif (str_contains($method, "web-eid-login")) {
+            return $this->finishWebEidLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -181,6 +185,30 @@ class EmbeddedIdentityController extends Controller
         $responseData = $this->eidEasyApi->completeIdentification(EidEasyParams::ZEALID_LOGIN, $data);
         unset($responseData['email']);
         $this->notifyLogin($responseData);
+
+        return response()->json($responseData);
+    }
+
+    public function startWebEidLogin(Request $request)
+    {
+        $data = $request->validate([
+            'country' => 'required|in:EE',
+            'method' => 'required',
+        ]);
+
+        $responseData = $this->eidEasyApi->startIdentification($data['method'], $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishWebEidLogin(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required',
+            'method' => 'required',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
 
         return response()->json($responseData);
     }
