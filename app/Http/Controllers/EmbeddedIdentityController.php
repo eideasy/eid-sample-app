@@ -205,6 +205,7 @@ class EmbeddedIdentityController extends Controller
     {
         $data = $request->validate([
             'token' => 'required',
+            'auth_token' => 'required',
             'method' => 'required',
         ]);
 
