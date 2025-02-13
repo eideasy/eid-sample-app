@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@amplitude/analytics-browser": "^2.1.2",
-        "@eid-easy/eideasy-widget": "^2.131.0",
+        "@eid-easy/eideasy-widget": "^2.146.1",
         "bootstrap-vue": "^2.21.2",
         "vue": "^2.6.14"
     }
