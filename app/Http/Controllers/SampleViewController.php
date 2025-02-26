@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
@@ -15,7 +16,17 @@ class SampleViewController extends Controller
 
     public function loginWidget()
     {
-        return view('login-widget');
+        $url = config('eideasy.api_url') . '/api/client-config/' . config('eideasy.client_id');
+        $config = Http::post($url, ['secret' => config('eideasy.secret')]);
+
+        $enabledIdentificationMethods = [];
+        foreach ($config['login'] as $methodConfig) {
+            if ($methodConfig['enabled'] === true) {
+                $enabledIdentificationMethods[] = $methodConfig['action_type'];
+            }
+        }
+
+        return view('login-widget', ['enabledIdentificationMethods' => $enabledIdentificationMethods]);
     }
 
     public function showDownloadSignedFile(Request $request)
