@@ -2,13 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\EidEasyApiService;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
 {
+    protected EidEasyApiService $eidEasyApi;
+
+    public function __construct(Client $client)
+    {
+        $this->eidEasyApi = new EidEasyApiService(
+            $client,
+            config('eideasy.client_id'),
+            config('eideasy.secret'),
+            config('eideasy.api_url')
+        );
+    }
+
     public function signAsiceFile()
     {
         return view('add-signature');
@@ -16,15 +29,7 @@ class SampleViewController extends Controller
 
     public function loginWidget()
     {
-        $url = config('eideasy.api_url') . '/api/client-config/' . config('eideasy.client_id');
-        $config = Http::post($url, ['secret' => config('eideasy.secret')]);
-
-        $enabledIdentificationMethods = [];
-        foreach ($config['login'] as $methodConfig) {
-            if ($methodConfig['enabled'] === true) {
-                $enabledIdentificationMethods[] = $methodConfig['action_type'];
-            }
-        }
+        $enabledIdentificationMethods = $this->eidEasyApi->getEnabledIdentificationMethods();
 
         return view('login-widget', ['enabledIdentificationMethods' => $enabledIdentificationMethods]);
     }
