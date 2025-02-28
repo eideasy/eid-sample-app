@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f7b1d4209b123f4bfe95aae00d9fe6cf",
+    "content-hash": "9d801aaecf27bed0d595ce2fef267451",
     "packages": [
         {
             "name": "brick/math",
@@ -434,16 +434,16 @@
         },
         {
             "name": "eideasy/eideasy-php",
-            "version": "v1.20.1",
+            "version": "v1.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eideasy/eideasy-php.git",
-                "reference": "ad3aecb5517f3c7d398a4f92760d757a032da88d"
+                "reference": "afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/ad3aecb5517f3c7d398a4f92760d757a032da88d",
-                "reference": "ad3aecb5517f3c7d398a4f92760d757a032da88d",
+                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a",
+                "reference": "afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a",
                 "shasum": ""
             },
             "require": {
@@ -473,9 +473,9 @@
             "description": "Create ASIC-E digital signature containers and add XAdES signatures to the container. Helper SDK for eID Easy API-s.",
             "support": {
                 "issues": "https://github.com/eideasy/eideasy-php/issues",
-                "source": "https://github.com/eideasy/eideasy-php/tree/v1.20.1"
+                "source": "https://github.com/eideasy/eideasy-php/tree/v1.21.0"
             },
-            "time": "2023-05-22T12:14:28+00:00"
+            "time": "2025-02-27T09:13:03+00:00"
         },
         {
             "name": "facile-it/php-jose-verifier",

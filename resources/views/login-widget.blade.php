@@ -45,7 +45,7 @@ $widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
           base: () => '{{ config('eideasy.api_url') }}',
         },
         enabledMethods: {
-          identification: 'all',
+          identification: {{ Illuminate\Support\Js::from($enabledIdentificationMethods) }},
         },
         onSuccess: function(data) {
           console.log('success');

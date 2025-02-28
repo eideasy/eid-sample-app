@@ -2,12 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\EidEasyApiService;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SampleViewController extends Controller
 {
+    protected EidEasyApiService $eidEasyApi;
+
+    public function __construct(Client $client)
+    {
+        $this->eidEasyApi = new EidEasyApiService(
+            $client,
+            config('eideasy.client_id'),
+            config('eideasy.secret'),
+            config('eideasy.api_url')
+        );
+    }
+
     public function signAsiceFile()
     {
         return view('add-signature');
@@ -15,7 +29,9 @@ class SampleViewController extends Controller
 
     public function loginWidget()
     {
-        return view('login-widget');
+        $enabledIdentificationMethods = $this->eidEasyApi->getEnabledIdentificationMethods();
+
+        return view('login-widget', ['enabledIdentificationMethods' => $enabledIdentificationMethods]);
     }
 
     public function showDownloadSignedFile(Request $request)
