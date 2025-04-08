@@ -1,7 +1,7 @@
 .hero {
   text-align: center;
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: 4rem;
+  font-weight: 400;
   margin-bottom: 4rem;
 }
 
@@ -10,6 +10,7 @@
   background-clip: text;
   background-image: linear-gradient(to right, #338cf5, #4fd1c5);
   color: transparent;
+  box-shadow: none;
 
   &:hover,
   &:focus {
@@ -17,4 +18,10 @@
     background-image: linear-gradient(to right, #338cf5, #4fd1c5);
     color: transparent;
   }
+}
+
+.hero__link_image {
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
 }

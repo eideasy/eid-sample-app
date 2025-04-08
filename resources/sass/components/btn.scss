@@ -1,0 +1,22 @@
+.btn-primary {
+  border-radius: 50px;
+  display: inline-block;
+  inset: 0%;
+  max-width: 100%;
+  color: #171d1f;
+  background-color: #e4f222;
+  font-weight: 500;
+  transition: all .15s ease-in-out;
+  position: relative;
+  width: auto;
+  border: 0;
+  padding: 7px 24px;
+
+  &:hover,
+  &:focus {
+    outline: 0;
+    background-color: #1d2526;
+    color: #e4f222;
+    box-shadow: none;
+  }
+}
