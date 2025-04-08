@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class="form-group form-check col-md-3">
-            <input class="form-check-input" type="checkbox" name="hide_pdf_visual" id="sign-locally" data-event-name="signing_demo_hide_visual_signature_clicked">
+            <input class="form-check-input" type="checkbox" name="hide_pdf_visual" id="hide_pdf_visual" data-event-name="signing_demo_hide_visual_signature_clicked">
             <label class="form-check-label" for="hide_pdf_visual">
                 Hide PDF visual signature
             </label>
@@ -82,8 +82,8 @@
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="signType" id="sign-locally" value="local" data-event-name="signing_demo_signature_creation_changed">
-            <label class="form-check-label" for="sign-locally">
+            <input class="form-check-input" type="radio" name="signType" id="api-flow" value="local" data-event-name="signing_demo_signature_creation_changed">
+            <label class="form-check-label" for="api-flow">
                 API Flow - UX fully under your control but requires more integration.
             </label>
         </div>
@@ -126,7 +126,9 @@
             </label>
         </div>
 
-        <button type="submit" class="btn btn-primary" data-event-name="signing_demo_sign_now_clicked">Sign now</button>
+        <div class="signing-demo-actions">
+            <button type="submit" class="btn btn-primary" data-event-name="signing_demo_sign_now_clicked">Sign now</button>
+        </div>
     </form>
     <hr>
     <ul>

@@ -15,7 +15,11 @@
                     target="_blank"
                     class="hero__link"
             >
-                eID Easy
+                <img
+                        class="hero__link_image"
+                        src="{{ asset('img/eideasy-black-logo.png') }}"
+                        alt="eID Easy Demo"
+                >
             </a>
             <br>
             Services Demo

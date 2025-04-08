@@ -1,4 +1,6 @@
 @import "common/variables";
+@import "common/font";
+@import "components/btn";
 @import "components/topbar";
 @import "components/footer";
 @import "components/hero";
@@ -6,7 +8,11 @@
 
 body {
   margin: 0;
-  position: relative
+  position: relative;
+  font-family: $font-family-primary;
+  background: $color-brand-lightest;
+  font-size: 17px;
+  color: #2a3636;
 }
 
 .main {
@@ -16,4 +22,38 @@ body {
 
 .eid-button {
   height: 50px
+}
+
+.list-group-item {
+  background-color: $color-brand-lightest;
+}
+
+a {
+  text-decoration: none;
+  color: #171d1f;
+  transition: color .15s ease-in-out, box-shadow .15s ease-in-out;
+  box-shadow: inset 0 -1px 0 0 #0ec67b;
+  font-weight: 500;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    box-shadow: none;
+    color: #171d1f;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: $font-family-secondary;
+  font-weight: 400;
+  font-variation-settings: "opsz" 100;
+  letter-spacing: -0.648501px;
+}
+
+.signing-demo-actions {
+  margin-top: 20px;
 }
