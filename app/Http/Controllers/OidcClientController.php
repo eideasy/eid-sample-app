@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\OidcClient\JwksService;
 use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Service\AuthorizationService;
 use Facile\OpenIDClient\Session\AuthSessionInterface;
@@ -64,5 +65,20 @@ class OidcClientController
                     "iss", "sub", "aud", "exp", "iat", "jti", "auth_time", "nonce",
                 ])
             ]);
+    }
+
+    public function getJwks(JwksService $jwksService): mixed
+    {
+        $jwks = $jwksService->getPublicJwks();
+
+        Log::info('getJwks', [
+            'jwks' => $jwks,
+        ]);
+
+        return response()->json($jwks, 200, [
+            'Content-Type' => 'application/json',
+            // Cache-Control header to cache the response for 1 hour.
+            'Cache-Control' => 'max-age=3600',
+        ]);
     }
 }

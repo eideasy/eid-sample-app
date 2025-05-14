@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\OidcClient\JwksProvider;
+use Facile\JoseVerifier\JWK\CachedJwksProvider;
 use Facile\JoseVerifier\JWK\JwksProviderBuilder;
+use Facile\JoseVerifier\JWK\MemoryJwksProvider;
 use Facile\OpenIDClient\Client\ClientBuilder;
 use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
@@ -74,16 +77,24 @@ class AppServiceProvider extends ServiceProvider
             $clientMetadata = ClientMetadata::fromArray([
                 'client_id' => config('eideasy.client_id'),
                 'client_secret' => config('eideasy.secret'),
-                // At the full release phase, eID Easy will support 'client_secret_jwt' and 'private_key_jwt' later.
-                'token_endpoint_auth_method' => 'client_secret_post', // the auth method for the token endpoint
+                // the auth method for the token endpoint
+                'token_endpoint_auth_method' => config('oidc-connection.token_endpoint_auth_method'),
                 'redirect_uris' => [
                     URL::route('oidc.callback'),
                 ],
             ]);
 
+            $clientJwksProvider = new CachedJwksProvider(
+                new JwksProvider(),
+                $cache,
+                'demo-client-jwks-1',
+                60 * 60 // Cache JWKS for 1 hour.
+            );
+
             $client = (new ClientBuilder())
                 ->setIssuer($issuer)
                 ->setClientMetadata($clientMetadata)
+                ->setJwksProvider($clientJwksProvider)
                 ->build();
 
             return $client;
