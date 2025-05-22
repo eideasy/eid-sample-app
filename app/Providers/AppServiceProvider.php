@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Services\OidcClient\JwksProvider;
 use Facile\JoseVerifier\JWK\CachedJwksProvider;
 use Facile\JoseVerifier\JWK\JwksProviderBuilder;
-use Facile\JoseVerifier\JWK\MemoryJwksProvider;
 use Facile\OpenIDClient\Client\ClientBuilder;
 use Facile\OpenIDClient\Client\ClientInterface;
 use Facile\OpenIDClient\Client\Metadata\ClientMetadata;
@@ -63,11 +62,11 @@ class AppServiceProvider extends ServiceProvider
             $cache = $app->get(Repository::class); // get your simple-cache implementation
             $metadataProviderBuilder = (new MetadataProviderBuilder())
                 ->setCache($cache)
-                ->setCacheTtl(60 * 60 * 24); // Cache metadata for 1 day
+                ->setCacheTtl(60 * 5); // Cache metadata for 5 minutes.
 
             $jwksProviderBuilder = (new JwksProviderBuilder())
                 ->setCache($cache)
-                ->setCacheTtl(60 * 60); // Cache JWKS for 1 hour
+                ->setCacheTtl(60 * 5); // Cache JWKS for 5 minutes.
 
             $issuer = (new IssuerBuilder())
                 ->setMetadataProviderBuilder($metadataProviderBuilder)
@@ -88,7 +87,7 @@ class AppServiceProvider extends ServiceProvider
                 new JwksProvider(),
                 $cache,
                 'demo-client-jwks-1',
-                60 * 60 // Cache JWKS for 1 hour.
+                60 * 5, // Cache JWKS for 5 minutes.
             );
 
             $client = (new ClientBuilder())
