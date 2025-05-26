@@ -19,3 +19,6 @@ Route::post('/js-sdk/decrypt-user-data', [JsSdkController::class, 'decryptUserDa
 
 Route::post('/identity/start', 'EmbeddedIdentityController@startLogin');
 Route::post('/identity/finish', 'EmbeddedIdentityController@finishLogin');
+
+Route::get('/oidc/jwks', [\App\Http\Controllers\OidcClientController::class, 'getJwks'])
+    ->name('oidc.jwks');

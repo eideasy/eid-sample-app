@@ -12,3 +12,8 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+
+public-keys
+keys
+private-sign-keys
+public-sign-keys
