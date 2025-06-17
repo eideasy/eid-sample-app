@@ -121,6 +121,11 @@ class SignLocallyController extends Controller
         } elseif ($containerType === 'enveloped-xades') {
             $signatureContainer = 'xades';
             $additionalPrepareParams['signature_packaging'] = 'ENVELOPED';
+            foreach ($sourceFiles as $key => $value) {
+                if ($sourceFiles[$key]['mimeType'] === 'text/xml') {
+                    $sourceFiles[$key]['mimeType'] = 'application/xml';
+                }
+            }
         }
 
         if ($signType === 'digest') {
@@ -176,8 +181,13 @@ class SignLocallyController extends Controller
 
         $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
         if (isset($data['status']) && $data['status'] !== "OK") {
+            info('Prepare status not ok', ['response' => $data]);
             if (isset($data['message']) && !empty($data['message'])) {
-                session()->flash('message', $data['message']);
+                $message = $data['message'];
+                if (isset($data['errors']['files'][0])) {
+                    $message .= ' ' . $data['errors']['files'][0];
+                }
+                session()->flash('message', $message);
                 session()->flash('alert-class', 'alert-danger');
 
                 return redirect()->back();

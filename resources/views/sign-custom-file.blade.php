@@ -128,7 +128,7 @@
         <div class="form-check">
             <input class="form-check-input" type="radio" name="containerType" id="enveloped-xades-selection" value="enveloped-xades" data-event-name="signing_demo_container_type_changed">
             <label class="form-check-label" for="enveloped-xades-selection">
-                Sign enveloped XADES. Uploaded file must be XML.
+                Create ENVELOPED XADES. Uploaded file must be XML.
             </label>
         </div>
 
