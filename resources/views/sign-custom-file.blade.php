@@ -111,6 +111,14 @@
 
         <h3>Container type</h3>
         <div class="form-check">
+            <input class="form-check-input" type="radio" name="containerType" id="pdf-selection" value="pdf" data-event-name="signing_demo_container_type_changed"
+                   checked>
+            <label class="form-check-label" for="pdf-selection">
+                Sign PDF. Signature can be verified with Adobe Reader and only one PDF is allowed. Only first uploaded
+                file is used and it must be PDF.
+            </label>
+        </div>
+        <div class="form-check">
             <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice" data-event-name="signing_demo_container_type_changed">
             <label class="form-check-label" for="asice-selection">
                 Create an .asice container. Very powerful signature type, allows to sign any type of file and multiple
@@ -118,11 +126,9 @@
             </label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="radio" name="containerType" id="pdf-selection" value="pdf" data-event-name="signing_demo_container_type_changed"
-                   checked>
-            <label class="form-check-label" for="pdf-selection">
-                Sign PDF. Signature can be verified with Adobe Reader and only one PDF is allowed. Only first uploaded
-                file is used and it must be PDF.
+            <input class="form-check-input" type="radio" name="containerType" id="enveloped-xades-selection" value="enveloped-xades" data-event-name="signing_demo_container_type_changed">
+            <label class="form-check-label" for="enveloped-xades-selection">
+                Sign enveloped XADES. Uploaded file must be XML.
             </label>
         </div>
 

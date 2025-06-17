@@ -57,7 +57,7 @@ class SignLocallyController extends Controller
             'pdf_x'            => 'nullable|min:0',
             'pdf_y'            => 'nullable|min:0',
             'pdf_page'         => 'nullable|min:0',
-            'containerType'    => 'required|in:asice,pdf',
+            'containerType'    => 'required|in:asice,pdf,enveloped-xades',
             'simple_firstname' => 'nullable|string|max:255',
             'simple_lastname'  => 'nullable|string|max:255',
             'simple_email'     => 'nullable|email',
@@ -102,6 +102,7 @@ class SignLocallyController extends Controller
 
         // Handle digest based signature starting.
         $signatureContainer = $containerType;
+        $additionalPrepareParams = [];
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
             $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
@@ -117,6 +118,9 @@ class SignLocallyController extends Controller
             $asice              = new Asice();
             $asiceContainer     = $asice->createAsiceContainer($sourceFiles);
             Storage::put("/unsigned/$fileId/container-$fileId.asice", $asiceContainer);
+        } elseif ($containerType === 'enveloped-xades') {
+            $signatureContainer = 'xades';
+            $additionalPrepareParams['signature_packaging'] = 'ENVELOPED';
         }
 
         if ($signType === 'digest') {
@@ -137,7 +141,7 @@ class SignLocallyController extends Controller
             ],
             'show_visual'        => !$request->boolean('hide_pdf_visual'),
             'return_available_methods' => true,
-        ];
+        ] + $additionalPrepareParams;
 
         $signerContacts = [];
         if ($request->has('simple_email') && !empty($request->input('simple_email'))) {
