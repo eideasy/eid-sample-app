@@ -57,7 +57,7 @@ class SignLocallyController extends Controller
             'pdf_x'            => 'nullable|min:0',
             'pdf_y'            => 'nullable|min:0',
             'pdf_page'         => 'nullable|min:0',
-            'containerType'    => 'required|in:asice,pdf,enveloped-xades',
+            'containerType'    => 'required|in:asice,pdf,enveloped-xades,asice-for-each-file',
             'simple_firstname' => 'nullable|string|max:255',
             'simple_lastname'  => 'nullable|string|max:255',
             'simple_email'     => 'nullable|email',
@@ -118,11 +118,17 @@ class SignLocallyController extends Controller
             $asice              = new Asice();
             $asiceContainer     = $asice->createAsiceContainer($sourceFiles);
             Storage::put("/unsigned/$fileId/container-$fileId.asice", $asiceContainer);
+        } elseif ($containerType === 'asice-for-each-file') {
+            $signatureContainer = 'asice';
+            foreach ($sourceFiles as $key => $value) {
+                [$fileName] = explode('.', $value['fileName']);
+                $sourceFiles[$key]['containerFileName'] = $fileName . '_' . $key . '.asice';
+            }
         } elseif ($containerType === 'enveloped-xades') {
             $signatureContainer = 'xades';
             $additionalPrepareParams['signature_packaging'] = 'ENVELOPED';
             foreach ($sourceFiles as $key => $value) {
-                if ($sourceFiles[$key]['mimeType'] === 'text/xml') {
+                if ($value['mimeType'] === 'text/xml') {
                     $sourceFiles[$key]['mimeType'] = 'application/xml';
                 }
             }
@@ -182,7 +188,7 @@ class SignLocallyController extends Controller
         $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
         if (isset($data['status']) && $data['status'] !== "OK") {
             info('Prepare status not ok', ['response' => $data]);
-            if (isset($data['message']) && !empty($data['message'])) {
+            if (!empty($data['message'])) {
                 $message = $data['message'];
                 if (isset($data['errors']['files'][0])) {
                     $message .= ' ' . $data['errors']['files'][0];
@@ -271,10 +277,11 @@ class SignLocallyController extends Controller
         }
 
         if (count($signedFilesContent) > 1) {
-            $zipDto = $this->zipService->zipPdfs($fileName, $signedFilesContent);
+            $zipDto = $this->zipService->zipFiles($fileName, $signedFilesContent);
             $absolutePath = $this->tempFileStorageService->absolutePath($zipDto->getFilePath());
 
-            $downloadFileName = str_replace('.pdf', '', $fileName) . '.zip';
+            [$downloadFileName] = explode('.', $fileName);
+            $downloadFileName .= '.zip';
             $downloadFileName = str_replace(',', '', $downloadFileName);
             $downloadFileName = iconv('utf-8', 'ascii//TRANSLIT', $downloadFileName);
 

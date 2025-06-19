@@ -436,10 +436,11 @@ class CscApiController extends Controller
         }
 
         if (count($signedFilesContent) > 1) {
-            $zipDto = $this->zipService->zipPdfs($fileName, $signedFilesContent);
+            $zipDto = $this->zipService->zipFiles($fileName, $signedFilesContent);
             $absolutePath = $this->tempFileStorageService->absolutePath($zipDto->getFilePath());
 
-            $downloadFileName = str_replace('.pdf', '', $fileName) . '.zip';
+            [$downloadFileName] = explode('.', $fileName);
+            $downloadFileName .= '.zip';
             $downloadFileName = str_replace(',', '', $downloadFileName);
             $downloadFileName = iconv('utf-8', 'ascii//TRANSLIT', $downloadFileName);
 

@@ -121,7 +121,14 @@
         <div class="form-check">
             <input class="form-check-input" type="radio" name="containerType" id="asice-selection" value="asice" data-event-name="signing_demo_container_type_changed">
             <label class="form-check-label" for="asice-selection">
-                Create an .asice container. Very powerful signature type, allows to sign any type of file and multiple
+                Create one .asice container for all files. Very powerful signature type, allows to sign any type of file and multiple
+                files at once.
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="containerType" id="asice-for-each-file-selection" value="asice-for-each-file" data-event-name="signing_demo_container_type_changed">
+            <label class="form-check-label" for="asice-for-each-file-selection">
+                Create an separate .asice container for each file. Very powerful signature type, allows to sign any type of file and multiple
                 files at once.
             </label>
         </div>
