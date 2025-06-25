@@ -21,36 +21,33 @@ class ZipService
     /**
      * @param Collection|array $files
      */
-    public function zipPdfs(
+    public function zipFiles(
         string $fileName,
         $files,
         bool $addUuid = true
     ): ZipDto {
-        $filePath = $fileName . '.zip';
+        [$fileNameWithOutExtension, $fileExtension] = explode('.', $fileName);
+        $filePath = $fileNameWithOutExtension . '.zip';
+
         if ($addUuid) {
             $uuid = Uuid::uuid4()->toString();
-            $filePath = $fileName . '_' . $uuid . '.zip';
-            Log::info('Adding uuid to zip file', [
-                'uuid' => $uuid,
-                'name' => $filePath,
-            ]);
+            $filePath = $fileNameWithOutExtension . '_' . $uuid . '.zip';
         }
+        Log::info('Adding uuid to zip file', ['file_path' => $filePath]);
 
         $absolutePath = $this->tempFileStorageService->createTempFolderIfNeeded($filePath);
-        $fileNameWithOutExtension = str_replace('.pdf', '', $fileName);
 
         $zip = new ZipArchive();
         $zip->open($absolutePath, ZipArchive::CREATE);
         foreach ($files as $index => $file) {
-            $pdfFileName = $fileNameWithOutExtension . ((string) $index) . '.pdf';
+            $pdfFileName = $fileNameWithOutExtension . ((string) $index) . '.' . $fileExtension;
             $zip->addFromString($pdfFileName, $file);
         }
         $zip->close();
 
-        $fileName = str_replace('.pdf', '', $fileName) . '.zip';
-        $fileName = str_replace(',', '', $fileName);
-        $fileName = iconv('utf-8', 'ascii//TRANSLIT', $fileName);
+        $zipFileName = $fileNameWithOutExtension . '.zip';
+        $zipFileName = iconv('utf-8', 'ascii//TRANSLIT', $zipFileName);
 
-        return new ZipDto($fileName, $filePath);
+        return new ZipDto($zipFileName, $filePath);
     }
 }
