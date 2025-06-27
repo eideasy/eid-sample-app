@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d801aaecf27bed0d595ce2fef267451",
+    "content-hash": "6d71b838012e4e24594b6dfe843919fb",
     "packages": [
         {
             "name": "brick/math",
@@ -434,16 +434,16 @@
         },
         {
             "name": "eideasy/eideasy-php",
-            "version": "v1.21.0",
+            "version": "v1.21.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/eideasy/eideasy-php.git",
-                "reference": "afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a"
+                "reference": "e41c841b1d9d3654f282f982c0b3b12353581ae1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a",
-                "reference": "afd7b6891d8b7f6a3461d76cf3e325437bcf3b6a",
+                "url": "https://api.github.com/repos/eideasy/eideasy-php/zipball/e41c841b1d9d3654f282f982c0b3b12353581ae1",
+                "reference": "e41c841b1d9d3654f282f982c0b3b12353581ae1",
                 "shasum": ""
             },
             "require": {
@@ -452,7 +452,7 @@
                 "ext-simplexml": "*",
                 "ext-zip": "*",
                 "guzzlehttp/guzzle": "*",
-                "php": "^7.0|^8.0"
+                "php": "^7.1|^8.0"
             },
             "type": "library",
             "autoload": {
@@ -473,9 +473,9 @@
             "description": "Create ASIC-E digital signature containers and add XAdES signatures to the container. Helper SDK for eID Easy API-s.",
             "support": {
                 "issues": "https://github.com/eideasy/eideasy-php/issues",
-                "source": "https://github.com/eideasy/eideasy-php/tree/v1.21.0"
+                "source": "https://github.com/eideasy/eideasy-php/tree/v1.21.3"
             },
-            "time": "2025-02-27T09:13:03+00:00"
+            "time": "2025-06-17T07:26:18+00:00"
         },
         {
             "name": "facile-it/php-jose-verifier",
@@ -8844,7 +8844,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -8855,6 +8855,6 @@
         "ext-openssl": "*",
         "ext-zip": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
