@@ -167,7 +167,8 @@ class EmbeddedIdentityController extends Controller
     public function startFrejaIdLogin(Request $request)
     {
         $data = $request->validate([
-            'idcode' => 'required|min:10|max:20',
+            'idcode' => 'required_without:email|min:10|max:20',
+            'email' => 'required_without:idcode|email',
             'country' => 'required|in:NO,SE,DK,FI'
         ]);
 
