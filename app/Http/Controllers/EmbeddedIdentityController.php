@@ -34,6 +34,8 @@ class EmbeddedIdentityController extends Controller
             return $this->startMobileidLogin($request);
         } elseif (str_contains($method, "web-eid-login")) {
             return $this->startWebEidLogin($request);
+        } elseif (str_contains($method, "google-wallet-login")) {
+            return $this->startGoogleWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -63,6 +65,8 @@ class EmbeddedIdentityController extends Controller
             return $this->finishIdCardLogin($request);
         } elseif (str_contains($method, "web-eid-login")) {
             return $this->finishWebEidLogin($request);
+        } elseif (str_contains($method, "google-wallet-login")) {
+            return $this->finishGoogleWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -198,6 +202,32 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         $responseData = $this->eidEasyApi->startIdentification($data['method'], $data);
+
+        return response()->json($responseData);
+    }
+
+    public function startGoogleWalletLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'document_type' => 'required|in:pid,mDL',
+        ]);
+
+        $responseData = $this->eidEasyApi->startIdentification($data['method'], $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishGoogleWalletLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'token' => 'required',
+            'claim_id' => 'required',
+            'document_type' => 'required',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
 
         return response()->json($responseData);
     }
