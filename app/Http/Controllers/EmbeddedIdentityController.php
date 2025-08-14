@@ -36,6 +36,8 @@ class EmbeddedIdentityController extends Controller
             return $this->startWebEidLogin($request);
         } elseif (str_contains($method, "google-wallet-login")) {
             return $this->startGoogleWalletLogin($request);
+        } elseif (str_contains($method, "evrotrust-login")) {
+            return $this->startEvrotrustLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -67,6 +69,8 @@ class EmbeddedIdentityController extends Controller
             return $this->finishWebEidLogin($request);
         } elseif (str_contains($method, "google-wallet-login")) {
             return $this->finishGoogleWalletLogin($request);
+        } elseif (str_contains($method, "evrotrust-login")) {
+            return $this->finishEvrotrustLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -181,6 +185,19 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
+    public function startEvrotrustLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'phone' => 'required',
+            'country' => 'required'
+        ]);
+
+        $responseData = $this->eidEasyApi->startIdentification($request->get('method'), $data);
+
+        return response()->json($responseData);
+    }
+
     public function finishZealIdLogin(Request $request)
     {
         $data = $request->validate([
@@ -206,32 +223,6 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startGoogleWalletLogin(Request $request)
-    {
-        $data = $request->validate([
-            'method' => 'required',
-            'document_type' => 'required|in:pid,mDL',
-        ]);
-
-        $responseData = $this->eidEasyApi->startIdentification($data['method'], $data);
-
-        return response()->json($responseData);
-    }
-
-    public function finishGoogleWalletLogin(Request $request)
-    {
-        $data = $request->validate([
-            'method' => 'required',
-            'token' => 'required',
-            'claim_id' => 'required',
-            'document_type' => 'required',
-        ]);
-
-        $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
-
-        return response()->json($responseData);
-    }
-
     public function finishWebEidLogin(Request $request)
     {
         $data = $request->validate([
@@ -241,6 +232,18 @@ class EmbeddedIdentityController extends Controller
         ]);
 
         $responseData = $this->eidEasyApi->completeIdentification($data['method'], $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishEvrotrustLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'token' => 'required',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification($request->get('method'), $data);
 
         return response()->json($responseData);
     }
