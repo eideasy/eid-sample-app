@@ -38,6 +38,8 @@ class EmbeddedIdentityController extends Controller
             return $this->startGoogleWalletLogin($request);
         } elseif (str_contains($method, "evrotrust-login")) {
             return $this->startEvrotrustLogin($request);
+        } elseif (str_contains($method, "eudi-wallet-login")) {
+            return $this->startEudiWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -71,6 +73,8 @@ class EmbeddedIdentityController extends Controller
             return $this->finishGoogleWalletLogin($request);
         } elseif (str_contains($method, "evrotrust-login")) {
             return $this->finishEvrotrustLogin($request);
+        } elseif (str_contains($method, "eudi-wallet-login")) {
+            return $this->finishEudiWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -198,6 +202,19 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
+    public function startEudiWalletLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'country' => 'required',
+            'document_type' => 'required'
+        ]);
+
+        $responseData = $this->eidEasyApi->startIdentification($request->get('method'), $data);
+
+        return response()->json($responseData);
+    }
+
     public function finishZealIdLogin(Request $request)
     {
         $data = $request->validate([
@@ -237,6 +254,18 @@ class EmbeddedIdentityController extends Controller
     }
 
     public function finishEvrotrustLogin(Request $request)
+    {
+        $data = $request->validate([
+            'method' => 'required',
+            'token' => 'required',
+        ]);
+
+        $responseData = $this->eidEasyApi->completeIdentification($request->get('method'), $data);
+
+        return response()->json($responseData);
+    }
+
+    public function finishEudiWalletLogin(Request $request)
     {
         $data = $request->validate([
             'method' => 'required',
