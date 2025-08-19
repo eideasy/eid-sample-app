@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use EidEasy\Api\EidEasyApi;
 use EidEasy\EidEasyParams;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Mail;
@@ -22,7 +23,7 @@ class EmbeddedIdentityController extends Controller
         $this->eidEasyApi = $api;
     }
 
-    public function startLogin(Request $request)
+    public function startLogin(Request $request): JsonResponse
     {
         $method = $request->input('method');
         info("Start login $method");
@@ -45,7 +46,7 @@ class EmbeddedIdentityController extends Controller
         abort(404, "Invalid method $method");
     }
 
-    public function finishLogin(Request $request)
+    public function finishLogin(Request $request): JsonResponse
     {
         $method = $request->input('method');
         info("Finishing login $method");
@@ -80,7 +81,7 @@ class EmbeddedIdentityController extends Controller
         abort(404, "Invalid method $method");
     }
 
-    public function finishIdCardLogin(Request $request)
+    public function finishIdCardLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => 'required',
@@ -98,7 +99,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishMobileidLogin(Request $request)
+    public function finishMobileidLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => 'required',
@@ -114,7 +115,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startMobileidLogin(Request $request)
+    public function startMobileidLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'idcode' => 'required|size:11',
@@ -132,7 +133,7 @@ class EmbeddedIdentityController extends Controller
         ]);
     }
 
-    public function finishSmartIdLogin(Request $request)
+    public function finishSmartIdLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => 'required',
@@ -147,7 +148,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startSmartIdLogin(Request $request)
+    public function startSmartIdLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'country' => 'in:EE,LV,LT',
@@ -161,7 +162,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishFrejaEidLogin(Request $request)
+    public function finishFrejaEidLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => 'required',
@@ -176,7 +177,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startFrejaIdLogin(Request $request)
+    public function startFrejaIdLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'idcode' => 'required_without:email|min:10|max:20',
@@ -189,7 +190,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startEvrotrustLogin(Request $request)
+    public function startEvrotrustLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
@@ -202,7 +203,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startEudiWalletLogin(Request $request)
+    public function startEudiWalletLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
@@ -215,7 +216,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishZealIdLogin(Request $request)
+    public function finishZealIdLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'code' => 'required|string',
@@ -228,7 +229,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startWebEidLogin(Request $request)
+    public function startWebEidLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'country' => 'required|in:EE',
@@ -240,7 +241,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishWebEidLogin(Request $request)
+    public function finishWebEidLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'token' => 'required',
@@ -253,7 +254,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishEvrotrustLogin(Request $request)
+    public function finishEvrotrustLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
@@ -265,7 +266,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishEudiWalletLogin(Request $request)
+    public function finishEudiWalletLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
@@ -277,7 +278,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    protected function notifyLogin($responseData)
+    protected function notifyLogin($responseData): void
     {
         info("Notifying of new login");
         if (count($responseData) === 0) {
