@@ -35,12 +35,10 @@ class EmbeddedIdentityController extends Controller
             return $this->startMobileidLogin($request);
         } elseif (str_contains($method, "web-eid-login")) {
             return $this->startWebEidLogin($request);
-        } elseif (str_contains($method, "google-wallet-login")) {
-            return $this->startGoogleWalletLogin($request);
+        } elseif (str_contains($method, "google-wallet-login") || str_contains($method, "eudi-wallet-login")) {
+            return $this->startDigitalWalletLogin($request);
         } elseif (str_contains($method, "evrotrust-login")) {
             return $this->startEvrotrustLogin($request);
-        } elseif (str_contains($method, "eudi-wallet-login")) {
-            return $this->startEudiWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -70,12 +68,10 @@ class EmbeddedIdentityController extends Controller
             return $this->finishIdCardLogin($request);
         } elseif (str_contains($method, "web-eid-login")) {
             return $this->finishWebEidLogin($request);
-        } elseif (str_contains($method, "google-wallet-login")) {
-            return $this->finishGoogleWalletLogin($request);
+        } elseif (str_contains($method, "google-wallet-login") || str_contains($method, "eudi-wallet-login")) {
+            return $this->finishDigitalWalletLogin($request);
         } elseif (str_contains($method, "evrotrust-login")) {
             return $this->finishEvrotrustLogin($request);
-        } elseif (str_contains($method, "eudi-wallet-login")) {
-            return $this->finishEudiWalletLogin($request);
         }
 
         abort(404, "Invalid method $method");
@@ -203,7 +199,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function startEudiWalletLogin(Request $request): JsonResponse
+    public function startDigitalWalletLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
@@ -266,7 +262,7 @@ class EmbeddedIdentityController extends Controller
         return response()->json($responseData);
     }
 
-    public function finishEudiWalletLogin(Request $request): JsonResponse
+    public function finishDigitalWalletLogin(Request $request): JsonResponse
     {
         $data = $request->validate([
             'method' => 'required',
