@@ -14,4 +14,9 @@ return [
     'eid_test_client_id' => env('EID_TEST_CLIENT_ID', 'dummy'),
     'eid_test_secret' => env('EID_TEST_SECRET', 'dummy'),
     'notify_email' => env('NOTIFY_EMAIL'),
+    'eid_sandbox_mode' => env(
+        'EID_WIDGET_SANDBOX_MODE',
+        // When this env variable is not set, Enable sandbox mode if not using the production EID API URL.
+        !(env('EID_API_URL') === 'https://id.eideasy.com'),
+    ),
 ];
