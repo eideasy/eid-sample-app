@@ -25,8 +25,8 @@ $widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
     </div>
 
     <script
-            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@2.146.1/dist/full/eideasy-widget.umd.min.js?version=2.146.1"
-            integrity="sha256-hxUTghFqUvEHptHdeGFaYFXEwdN9D+hXznOtiZS/9Fs="
+            src="https://cdn.jsdelivr.net/npm/@eid-easy/eideasy-widget@3.6.0/dist/eideasy-widget.umd.js?version=3.6.0"
+            integrity="sha256-OY9jxY7T+07giwfGWfu//6HABfrZVf9qh5YFBI0gY4A="
             crossorigin="anonymous">
     </script>
 
@@ -37,6 +37,7 @@ $widgetSandbox = env('EID_WIDGET_SANDBOX_MODE', 'false') ? 'true' : 'false';
         countryCode: 'EE', // ISO 3166  two letter country code
         language: 'en', // ISO 639-1 two letter language code,
         sandbox: {{ $widgetSandbox }},
+        fieldAutocomplete: {{ $widgetSandbox }},
         clientId: '{{ config('eideasy.client_id') }}',
         redirectUri: '{{ config('eideasy.redirect_uri') }}', // this gets used for redirects e.g. when using eParaksts mobile
         apiEndpoints: {
