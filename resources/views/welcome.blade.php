@@ -2,9 +2,9 @@
 
 @section('content')
 
-    @if(!empty($errorDescription))
+    @if(!empty($error))
     <div class="alert alert-danger">
-        <span>{{ $errorDescription }}</span>
+        <span>{{ $error }}</span>
     </div>
     @endif
 
@@ -14,7 +14,7 @@
         </div>
     @endif
 
-    @if (!isset($userData) && empty($errorDescription))
+    @if (!isset($userData) && empty($error))
         <h1 class="hero">
             <a
                     href="https://eideasy.com"
@@ -32,7 +32,7 @@
         </h1>
     @endif
 
-    @if (empty($errorDescription))
+    @if (empty($error))
     <p>
         This is a demo app you can use to test out <a href="https://eideasy.com" target="_blank">eID Easy</a> services.
     </p>
