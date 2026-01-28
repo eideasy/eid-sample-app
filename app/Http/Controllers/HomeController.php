@@ -20,6 +20,11 @@ class HomeController extends Controller
             return view('welcome', ['authorizeUri' => $authoriseUri, "userData" => $userData]);
         }
 
+        // If request has parameter error description then there is OAuth 2.0 return and we get error.
+        if ($request->error_description !== null) {
+            return view('welcome', ['authorizeUri' => $authoriseUri, "errorDescription" => $request->error_description]);
+        }
+
         // Show list of sample apps.
         return view('welcome', ['authorizeUri' => $authoriseUri]);
     }
