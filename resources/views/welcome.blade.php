@@ -2,13 +2,19 @@
 
 @section('content')
 
-
+    @if(!empty($error))
+    <div class="alert alert-danger">
+        <span>{{ $error }}</span>
+    </div>
+    @endif
 
     @if (isset($userData))
         <div id="app">
             <user-data user-data='{!!json_encode($userData)!!}'></user-data>
         </div>
-    @else
+    @endif
+
+    @if (!isset($userData) && empty($error))
         <h1 class="hero">
             <a
                     href="https://eideasy.com"
@@ -26,6 +32,7 @@
         </h1>
     @endif
 
+    @if (empty($error))
     <p>
         This is a demo app you can use to test out <a href="https://eideasy.com" target="_blank">eID Easy</a> services.
     </p>
@@ -46,6 +53,7 @@
                     container</a></li>
         </ul>
     </div>
+    @endif
 @endsection
 
 @section('scripts')
