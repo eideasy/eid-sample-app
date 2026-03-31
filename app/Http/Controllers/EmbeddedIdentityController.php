@@ -148,9 +148,10 @@ class EmbeddedIdentityController extends Controller
     {
         $data = $request->validate([
             'country' => 'in:EE,LV,LT',
-            'idcode' => 'required',
+            'idcode' => 'required_unless:smartid_plus,true',
             'method' => 'required',
             'lang' => 'size:2',
+            'smartid_plus' => 'boolean',
         ]);
 
         $responseData = $this->eidEasyApi->startIdentification('smartid', $data);
