@@ -154,7 +154,6 @@ class EmbeddedIdentityController extends Controller
             'smartid_plus' => 'boolean',
         ]);
 
-        \Log::debug('SmartID request body', $data);
         $responseData = $this->eidEasyApi->startIdentification('smartid', $data);
 
         return response()->json($responseData);
