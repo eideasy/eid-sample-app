@@ -10,7 +10,7 @@
 
     @if (isset($userData))
         <div id="app">
-            <user-data user-data='{!!json_encode($userData)!!}'></user-data>
+            <user-data :user-data='@json($userData)'></user-data>
         </div>
     @endif
 
