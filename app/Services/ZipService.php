@@ -26,7 +26,12 @@ class ZipService
         $files,
         bool $addUuid = true
     ): ZipDto {
-        [$fileNameWithOutExtension, $fileExtension] = explode('.', $fileName);
+        $fileNameWithOutExtension = pathinfo($fileName, PATHINFO_FILENAME);
+        $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $fileSuffix = '';
+        if ($fileExtension !== '') {
+            $fileSuffix = '.' . $fileExtension;
+        }
         $filePath = $fileNameWithOutExtension . '.zip';
 
         if ($addUuid) {
@@ -40,7 +45,7 @@ class ZipService
         $zip = new ZipArchive();
         $zip->open($absolutePath, ZipArchive::CREATE);
         foreach ($files as $index => $file) {
-            $pdfFileName = $fileNameWithOutExtension . ((string) $index) . '.' . $fileExtension;
+            $pdfFileName = $fileNameWithOutExtension . ((string) $index) . $fileSuffix;
             $zip->addFromString($pdfFileName, $file);
         }
         $zip->close();
