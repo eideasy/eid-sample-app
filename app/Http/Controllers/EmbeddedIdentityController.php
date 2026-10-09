@@ -27,7 +27,9 @@ class EmbeddedIdentityController extends Controller
     {
         $method = $request->input('method');
         info("Start login $method");
-        if ($method === "smartid") {
+        if ($method === "audkenni-login") {
+            return $this->startAudkenniLogin($request);
+        } elseif ($method === "smartid") {
             return $this->startSmartIdLogin($request);
         } elseif ($method === "freja-eid-login") {
             return $this->startFrejaIdLogin($request);
@@ -48,7 +50,9 @@ class EmbeddedIdentityController extends Controller
     {
         $method = $request->input('method');
         info("Finishing login $method");
-        if ($method === "smartid") {
+        if ($method === "audkenni-login") {
+            return $this->finishAudkenniLogin($request);
+        } elseif ($method === "smartid") {
             return $this->finishSmartIdLogin($request);
         } elseif ($method === EidEasyParams::ZEALID_LOGIN) {
             return $this->finishZealIdLogin($request);
@@ -127,6 +131,27 @@ class EmbeddedIdentityController extends Controller
             'challenge' => $responseData['challenge'],
             'token' => $responseData['token'],
         ]);
+    }
+
+    public function startAudkenniLogin(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'country' => 'required|in:IS',
+            'idcode' => ['required', 'string', 'regex:/^[0-9]{10}$/D'],
+            'lang' => 'sometimes|string|size:2',
+        ]);
+
+        return response()->json($this->eidEasyApi->startIdentification('audkenni-login', $data));
+    }
+
+    public function finishAudkenniLogin(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token' => 'required|string|size:64|alpha_num',
+            'lang' => 'sometimes|string|size:2',
+        ]);
+
+        return response()->json($this->eidEasyApi->completeIdentification('audkenni-login', $data));
     }
 
     public function finishSmartIdLogin(Request $request): JsonResponse
