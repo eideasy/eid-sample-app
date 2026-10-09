@@ -439,8 +439,7 @@ class CscApiController extends Controller
             $zipDto = $this->zipService->zipFiles($fileName, $signedFilesContent);
             $absolutePath = $this->tempFileStorageService->absolutePath($zipDto->getFilePath());
 
-            [$downloadFileName] = explode('.', $fileName);
-            $downloadFileName .= '.zip';
+            $downloadFileName = $zipDto->getFileName();
             $downloadFileName = str_replace(',', '', $downloadFileName);
             $downloadFileName = iconv('utf-8', 'ascii//TRANSLIT', $downloadFileName);
 
