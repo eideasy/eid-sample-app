@@ -3,17 +3,21 @@
 First go to the https://id.eideasy.com to register website to get client_id and secret values. For testing against sandbox find the credentials from https://eideasy.com/developer-documentation/sandbox/ .
 
 ## Installing
-This Sample app is based on the Laravel framework. See more at https://laravel.com/docs/7.x/installation
+This Sample app requires PHP 8.5 and is based on Laravel 12. See more at https://laravel.com/docs/12.x/installation
 For simplicitly the app is designed to work without database. Session is used to store temporary metadata.
 
 For running locally
 
+- use PHP 8.5 with the fileinfo, iconv, JSON, OpenSSL, and ZIP extensions and Composer 2
 - copy .env.example to .env file and change values under Configuration chapter
 - run "php artisan key:generate"
 - run "composer install"
 - run "npm install"
 - run "npm run dev" to create public/js/app.js and public/css/style.css 
 - start the app with "php artisan serve" or install it to server
+
+When using DDEV, run `ddev start` (or `ddev restart` after changing PHP versions),
+then use `ddev composer install` and `ddev artisan test` to install dependencies and run tests on PHP 8.5.
 
 ## Configuration
 

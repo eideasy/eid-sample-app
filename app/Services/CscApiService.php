@@ -6,28 +6,24 @@ use EidEasy\Api\EidEasyApi;
 use EidEasy\Signatures\Pades;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CscApiService extends EidEasyApi
 {
-    private string $clientId;
-    private string $apiUrl;
-    private string $secret;
-    private Client $guzzle;
-    private $pades;
+    private ?string $clientId;
+    private ?string $secret;
+    private ?Client $guzzle;
+    private Pades $pades;
 
     public function __construct(
         Pades $pades,
-        Client $guzzle = null,
-        string $clientId = null,
-        string $secret = null,
+        ?Client $guzzle = null,
+        ?string $clientId = null,
+        ?string $secret = null,
         string $apiUrl = "https://id.eideasy.eu"
     ) {
         parent::__construct($guzzle, $clientId, $secret, $apiUrl);
 
-        $this->apiUrl = $apiUrl;
         $this->guzzle = $guzzle;
         $this->clientId = $clientId;
         $this->secret = $secret;
