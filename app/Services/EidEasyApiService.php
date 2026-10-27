@@ -13,7 +13,7 @@ class EidEasyApiService extends EidEasyApi
     private string $secret;
     private Client $guzzle;
 
-    public function __construct(Client $guzzle = null, string $clientId = null, string $secret = null, string $apiUrl = "https://id.eideasy.eu")
+    public function __construct(?Client $guzzle = null, ?string $clientId = null, ?string $secret = null, string $apiUrl = "https://id.eideasy.eu")
     {
         parent::__construct($guzzle, $clientId, $secret, $apiUrl);
 

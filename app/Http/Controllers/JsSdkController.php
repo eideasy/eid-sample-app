@@ -56,7 +56,7 @@ class JsSdkController extends Controller
         $millis      = $data->timestamp;
         $requestTime = Carbon::createFromTimestampMs($millis);
         $now         = now();
-        if ($requestTime->diffInSeconds($now) > 60) {
+        if ($requestTime->diffInSeconds($now, true) > 60) {
             Log::error("Timestamp expired $requestTime, $now");
             abort(403, "Expired timestamp, Timestamp $requestTime, now $now");
         }
