@@ -8,14 +8,13 @@ use App\Services\TempFileStorageService;
 use App\Services\ZipService;
 use Illuminate\Support\Facades\Log;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 use ZipArchive;
 
 class ZipServiceTest extends TestCase
 {
-    /**
-     * @dataProvider batchFileNames
-     */
+    #[DataProvider('batchFileNames')]
     public function testBatchZipPreservesFinalExtension(string $fileName, string $baseName, string $extension): void
     {
         Log::shouldReceive('info');
