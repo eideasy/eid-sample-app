@@ -1,15 +1,7 @@
 @extends('template')
 
 @section('content')
-    <div class="row">
-        <h1>
-            API Based Flow Using eID Easy Widget
-        </h1>
-        <p>
-            Make sure you are running over https, have ID card in the reader and software installed is using ID card
-            signing.
-        </p>
-    </div>
+    <div class="demo-heading"><span class="eyebrow">API SIGNING FLOW</span><h1>Your website. Your signing journey.</h1><p>Preview your documents and complete the signature using the signing widget. ID-card signing requires HTTPS, a card reader and installed ID-card software.</p></div>
     <div class="row">
         <div class="col">
             @if(count($files)===0)

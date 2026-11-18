@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\EidEasyApiService;
+use App\Http\Requests\SigningPlaygroundRequest;
 use App\Services\TempFileStorageService;
 use App\Services\ZipService;
 use EidEasy\Signatures\Asice;
@@ -47,22 +48,9 @@ class SignLocallyController extends Controller
         return Storage::download("/unsigned/$docId/$fileName");
     }
 
-    public function startSignCustomFile(Request $request)
+    public function startSignCustomFile(SigningPlaygroundRequest $request)
     {
-        $request->validate([
-            'redirect_uri'     => 'nullable|url',
-            'unsigned_file'    => 'required|array',
-            'unsigned_file.*'  => 'required|file',
-            'signType'         => 'required|in:local,external,digest,eseal,multisign',
-            'pdf_x'            => 'nullable|min:0',
-            'pdf_y'            => 'nullable|min:0',
-            'pdf_page'         => 'nullable|min:0',
-            'containerType'    => 'required|in:asice,pdf,enveloped-xades,asice-for-each-file',
-            'simple_firstname' => 'nullable|string|max:255',
-            'simple_lastname'  => 'nullable|string|max:255',
-            'simple_email'     => 'nullable|email',
-            'simple_sms'       => ['nullable', 'regex:/^\+\d{7,15}$/'],
-        ]);
+        $validated = $request->validated();
 
         // Use sandbox credentials for e-Seals for now
         if ($request->input('signType') === 'eseal') {
@@ -168,12 +156,16 @@ class SignLocallyController extends Controller
             ];
         }
 
-        if ($request->has('pdf_x') || $request->has('pdf_y') || $request->has('pdf_page')) {
-            $prepareParams['visual_coordinates'] = (object)[
-                'page' => $request->get('pdf_page'),
-                'x'    => $request->get('pdf_x'),
-                'y'    => $request->get('pdf_y'),
-            ];
+        if ($containerType === 'pdf' && !$request->boolean('hide_pdf_visual')) {
+            $coordinates = [];
+            foreach (['pdf_x' => 'x', 'pdf_y' => 'y', 'pdf_page' => 'page'] as $field => $coordinate) {
+                if (isset($validated[$field])) {
+                    $coordinates[$coordinate] = (int) $validated[$field];
+                }
+            }
+            if ($coordinates !== []) {
+                $prepareParams['visual_coordinates'] = (object) ($coordinates + ['page' => 0]);
+            }
         }
 
         if (count($signerContacts) > 0) {
@@ -196,7 +188,7 @@ class SignLocallyController extends Controller
                 session()->flash('message', $message);
                 session()->flash('alert-class', 'alert-danger');
 
-                return redirect()->back();
+                return redirect()->back()->withInput($request->except(['unsigned_file', '_token']));
             }
         }
         $docId = $data['doc_id'];

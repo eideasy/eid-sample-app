@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    @if(config('services.amplitude.enabled'))
+    @if(config('services.amplitude.enabled') && config('services.amplitude.api_key'))
         @include('analytics-instrumentation')
     @endif
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>eID Easy sample apps</title>
+    <title>@yield('title', 'eID Easy sample apps') — eID Easy</title>
 
     <link rel="stylesheet" href="{{asset('/css/vendor/bootstrap.min.css')}}">
     <link rel="stylesheet" href="{{asset('/css/vendor/toastr.min.css')}}">
     <link rel="stylesheet" href="{{mix('/css/style.css')}}">
 </head>
-<body>
+<body @if(!request()->is('login-widget')) class="modern-demo" @endif>
 
 @include('topbar')
 
@@ -49,6 +49,10 @@
     "hideMethod": "fadeOut"
   }
 </script>
+@if(!request()->is('login-widget'))
+<script src="{{ asset('/js/vendor/lucide.min.js') }}"></script>
+<script>lucide.createIcons();</script>
+@endif
 @yield('scripts')
 </body>
 </html>
