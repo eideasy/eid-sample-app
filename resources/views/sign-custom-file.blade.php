@@ -21,6 +21,7 @@
     <noscript><p class="alert alert-info">You can sign files with this form. Enable JavaScript for PDF preview, visual placement and live file checks.</p></noscript>
     <form method="POST" enctype="multipart/form-data" class="signing-form" id="signing-playground">
         @csrf
+        <input type="hidden" name="placement_document_fingerprint" id="placement-document-fingerprint" value="{{ old('placement_document_fingerprint') }}">
         <div class="signing-workspace">
             <section class="setup-panel" aria-label="Signing configuration">
                 <div class="setup-section">
@@ -74,7 +75,7 @@
                 <fieldset class="appearance-controls" id="appearance-controls"><legend class="sr-only">PDF signature appearance</legend>
                     <label class="visual-toggle" for="hide_pdf_visual"><input type="checkbox" name="hide_pdf_visual" id="hide_pdf_visual" @checked(old('hide_pdf_visual')) data-event-name="signing_demo_hide_visual_signature_clicked"><span>Hide visual signature</span></label>
                     <div id="placement-fields">
-                        <div class="coordinate-fields"><div><label for="pdf_x">X (pt)</label><input name="pdf_x" id="pdf_x" type="number" min="0" step="1" value="{{ old('pdf_x') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_x_coordinate_changed"></div><div><label for="pdf_y">Y (pt)</label><input name="pdf_y" id="pdf_y" type="number" min="0" step="1" value="{{ old('pdf_y') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_y_coordinate_changed"></div><div><label for="pdf_page">Page</label><input name="pdf_page_display" id="pdf_page" type="number" min="1" step="1" value="{{ old('pdf_page') !== null ? (int) old('pdf_page') + 1 : 1 }}"><input type="hidden" name="pdf_page" id="pdf_page_index" value="{{ old('pdf_page') }}"></div></div>
+                        <div class="coordinate-fields"><div><label for="pdf_x">X (pt)</label><input name="pdf_x" id="pdf_x" type="number" min="0" step="1" value="{{ old('pdf_x') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_x_coordinate_changed"></div><div><label for="pdf_y">Y (pt)</label><input name="pdf_y" id="pdf_y" type="number" min="0" step="1" value="{{ old('pdf_y') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_y_coordinate_changed"></div><div><label for="pdf_page">Page</label><input name="pdf_page_display" id="pdf_page" type="number" min="1" step="1" value="{{ old('pdf_page_display', old('pdf_page') !== null ? (int) old('pdf_page') + 1 : 1) }}"><input type="hidden" name="pdf_page" id="pdf_page_index" value="{{ old('pdf_page') }}"></div></div>
                         <div class="placement-presets"><span>Place at</span><button type="button" data-preset="left">Bottom left</button><button type="button" data-preset="right">Bottom right</button><button type="button" data-preset="auto">Automatic</button></div>
                         <p class="field-hint" id="placement-hint">Choose a PDF, then click or drag to position. X and Y use PDF points from the bottom-left corner. Leave coordinates empty for automatic placement.</p>
                         <p class="field-hint" id="preview-note">The placement guide is approximate. The signing service determines the final appearance and may move it to avoid existing signatures.</p>

@@ -109,4 +109,20 @@ class SigningPlaygroundTest extends TestCase
         $this->from('/sign-custom-file')->post('/sign-custom-file', ['signType' => 'digest', 'containerType' => 'asice', 'simple_firstname' => 'Demo'])->assertRedirect('/sign-custom-file')->assertSessionHasErrors('unsigned_file');
         $this->get('/sign-custom-file')->assertOk()->assertSee('value="digest" selected', false)->assertSee('value="Demo"', false)->assertSee('ASiC-E per file')->assertSee('Automatic e-Seal')->assertSee('Multiple signers');
     }
+    public function testValidationRestoresPlacementWithTheUploadedDocumentFingerprint(): void
+    {
+        $file = UploadedFile::fake()->createWithContent('agreement.pdf', "%PDF-1.4\noriginal document");
+        $fingerprint = hash_file('sha256', $file->getRealPath());
+        $this->from('/sign-custom-file')->post('/sign-custom-file', $this->payload([
+            'unsigned_file' => [$file], 'pdf_x' => 32, 'pdf_y' => 48, 'pdf_page_display' => 2,
+            'redirect_uri' => 'invalid-url', 'placement_document_fingerprint' => $fingerprint,
+        ]))->assertRedirect('/sign-custom-file')->assertSessionHasErrors('redirect_uri')
+            ->assertSessionHasInput('placement_document_fingerprint', $fingerprint)
+            ->assertSessionHasInput('pdf_x', 32)->assertSessionHasInput('pdf_y', 48)
+            ->assertSessionHasInput('pdf_page_display', 2);
+        $this->get('/sign-custom-file')->assertOk()
+            ->assertSee('id="placement-document-fingerprint" value="'.$fingerprint.'"', false);
+        $this->assertCount(0, $this->requests);
+    }
+
 }

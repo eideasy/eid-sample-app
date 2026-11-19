@@ -1,4 +1,4 @@
-const { clamp, fitPlacement, pageIndex, fileProblem } = require('./signature-coordinates');
+const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = require('./signature-coordinates');
 
 (function () {
     const form = document.getElementById('signing-playground');
@@ -26,6 +26,8 @@ const { clamp, fitPlacement, pageIndex, fileProblem } = require('./signature-coo
     let pointerOffset = null;
     let dimensions = null;
     let submitting = false;
+    let selectingFile = false;
+    let selectionGeneration = 0;
     const format = () => form.querySelector('input[name="containerType"]:checked').value;
     const pdfSelected = () => format() === 'pdf';
     const hasCustomPosition = () => xInput.value !== '' && yInput.value !== '';
@@ -168,7 +170,25 @@ const { clamp, fitPlacement, pageIndex, fileProblem } = require('./signature-coo
         }
     }
 
-    function fileChange() {
+    async function fileChange() {
+        const revision = ++selectionGeneration;
+        ++generation;
+        ++renderGeneration;
+        const fingerprintInput = el('placement-document-fingerprint');
+        const fingerprint = fingerprintInput.value;
+        fingerprintInput.value = '';
+        selectingFile = true;
+        el('start-signing').disabled = true;
+        // Old input includes this local content fingerprint after validation.
+        // A different PDF must reset placement even if it reuses the filename.
+        const selectedFingerprint = input.files.length === 1 && pdfSelected()
+            ? await documentFingerprint(input.files[0]) : '';
+        if (revision !== selectionGeneration) return;
+        const sameDocument = fingerprint !== '' && fingerprint === selectedFingerprint;
+        fingerprintInput.value = selectedFingerprint;
+        if (!sameDocument) {
+            xInput.value = ''; yInput.value = ''; pageInput.value = 1; pageIndexInput.value = '';
+        }
         form.classList.toggle('has-files', input.files.length > 0);
         form.querySelector('.setup-section h2').textContent = input.files.length ? 'Your files.' : 'Start with a file.';
         const list = el('selected-files');
@@ -194,14 +214,16 @@ const { clamp, fitPlacement, pageIndex, fileProblem } = require('./signature-coo
         });
         showProblem(input.files.length ? fileProblem(Array.from(input.files), format()) : '');
         updateSummary();
-        loadPreview();
+        try { await loadPreview(); }
+        finally {
+            if (revision === selectionGeneration) {
+                selectingFile = false;
+                el('start-signing').disabled = false;
+            }
+        }
     }
 
-    input.addEventListener('change', () => {
-        // A new file must not inherit an out-of-range page or a placement from another document.
-        xInput.value = ''; yInput.value = ''; pageInput.value = 1; pageIndexInput.value = '';
-        fileChange();
-    });
+    input.addEventListener('change', fileChange);
     el('use-sample-file').addEventListener('click', async event => {
         const button = event.currentTarget;
         button.disabled = true;
@@ -280,7 +302,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem } = require('./signature-coo
     ['dragleave','drop'].forEach(type => drop.addEventListener(type, () => drop.classList.remove('dragging')));
     drop.addEventListener('drop', event => { event.preventDefault(); if (!event.dataTransfer.files.length) return; input.files = event.dataTransfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); });
     form.addEventListener('submit', event => {
-        if (submitting) { event.preventDefault(); return; }
+        if (submitting || selectingFile) { event.preventDefault(); return; }
         const problem = fileProblem(Array.from(input.files), format());
         showProblem(problem);
         if (problem) { event.preventDefault(); input.focus(); return; }

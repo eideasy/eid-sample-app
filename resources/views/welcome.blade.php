@@ -39,6 +39,13 @@
                 <span class="card-action">Explore the wallet demos <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
             </a>
         </div>
+        <details class="additional-demos">
+            <summary>More integration examples</summary>
+            <ul>
+                <li><a href="{{ url('login-widget') }}">Standalone embedded identification widget</a></li>
+                <li><a href="{{ url('add-signature-signed-file') }}">Add a signature to an existing ASiC-E container</a></li>
+            </ul>
+        </details>
         <p class="demo-footnote">Built for exploring the API. Use test documents and avoid uploading sensitive information.</p>
     @endif
 @endsection

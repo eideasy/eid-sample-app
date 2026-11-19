@@ -25,4 +25,13 @@ function fileProblem(files, format) {
     return '';
 }
 
-module.exports = { clamp, fitPlacement, pageIndex, fileProblem };
+// Promise chaining keeps this CommonJS helper compatible with the Webpack 4 build.
+function documentFingerprint(file, cryptoApi = globalThis.crypto) {
+    if (!file || !cryptoApi?.subtle) return Promise.resolve('');
+    return Promise.resolve().then(() => file.arrayBuffer())
+        .then(data => cryptoApi.subtle.digest('SHA-256', data))
+        .then(digest => Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join(''))
+        .catch(() => '');
+}
+
+module.exports = { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint };

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { fitPlacement, pageIndex, fileProblem } = require('../../resources/js/signature-coordinates');
+const { fitPlacement, pageIndex, fileProblem, documentFingerprint } = require('../../resources/js/signature-coordinates');
 
 test('placement stays inside the actual page dimensions, including a cropped page', () => {
     assert.deepEqual(fitPlacement(590, -10, [0, 0, 595, 842]), { x: 415, y: 0, width: 180, height: 60 });
@@ -20,4 +20,20 @@ test('PDF signing cannot silently discard extra files or accept a non-PDF', () =
     assert.match(fileProblem([{ name: 'photo.jpg', type: 'image/jpeg' }], 'pdf'), /Choose a PDF/);
     assert.equal(fileProblem([{ name: 'photo.jpg' }, pdf], 'asice'), '');
     assert.match(fileProblem([{ name: 'document.pdf' }], 'enveloped-xades'), /XML/);
+});
+
+// File identity is based on contents, not a reused filename or file size.
+test('validation reselection recognizes the same PDF and rejects different contents', async () => {
+    const { webcrypto, createHash } = require('node:crypto');
+    const original = Buffer.from('%PDF original document');
+    const changed = Buffer.from('%PDF different content');
+    const file = data => ({ arrayBuffer: async () => data });
+    const fingerprint = createHash('sha256').update(original).digest('hex');
+    assert.equal(await documentFingerprint(file(original), webcrypto), fingerprint);
+    assert.notEqual(await documentFingerprint(file(changed), webcrypto), fingerprint);
+    assert.equal(await documentFingerprint(null, webcrypto), '');
+    assert.equal(await documentFingerprint(file(original), {}), '');
+    // Restored page and coordinates are clamped when the matching PDF is previewed.
+    assert.equal(pageIndex(9, 2), 1);
+    assert.deepEqual(fitPlacement(900, 900, [0, 0, 595, 842]), { x: 415, y: 782, width: 180, height: 60 });
 });

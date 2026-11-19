@@ -46,6 +46,9 @@
   .demo-card.featured p, .demo-card.featured .card-caption { color: #d0e0d3; }
   .demo-card.featured .card-action { color: #e6f477; border-color: #506e5c; }
   .demo-card.sage { background: var(--sage); }
+  .additional-demos { margin-top: 24px; color: var(--muted); }
+  .additional-demos ul { margin: 0; padding-left: 20px; display: grid; gap: 12px; }
+  .additional-demos a { color: #193f35; text-decoration: underline; text-underline-offset: 3px; }
   .demo-footnote { color: var(--muted); font-size: 12px; text-align: center; margin: 25px 0 12px; }
   .signing-heading { margin-bottom: 27px; }
   &:has(.signing-heading) .main { padding-top: 30px; }

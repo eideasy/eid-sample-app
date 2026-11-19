@@ -16,6 +16,10 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertSee('More integration examples')
+            ->assertSee('href="'.url('login-widget').'"', false)
+            ->assertSee('href="'.url('add-signature-signed-file').'"', false);
+        $this->assertSame(3, substr_count($response->getContent(), '<a class="demo-card'));
     }
 }
