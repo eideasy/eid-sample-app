@@ -1,0 +1,43 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 294 >>
+stream
+BT /F1 24 Tf 56 755 Td (Service Agreement) Tj /F1 12 Tf 0 -40 Td (Fictional document for testing the signing playground.) Tj 0 -26 Td (This sample creates no commitments.) Tj 0 -55 Td (1. A document, ready for your signature.) Tj 0 -26 Td (Use the preview to position a visual signature.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Rotate 90 /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 115 >>
+stream
+BT /F1 24 Tf 56 515 Td (A second page) Tj /F1 12 Tf 0 -40 Td (Rotated landscape page for coordinate testing.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000000592 00000 n 
+0000000729 00000 n 
+0000000895 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+965
+%%EOF
