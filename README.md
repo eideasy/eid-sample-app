@@ -33,22 +33,27 @@ For signing with hwcrypto.js it is required the app to run over https. Also make
 
 ## Demo playground
 
-The homepage explains three demo journeys: digital signatures, hosted identification and
-digital identity wallets. The wallet card defaults to https://eudiw-playground.eideasy.com/.
-Set `EID_WALLET_DEMOS_URL=http://localhost:5173/` in `.env` to test against the local
-wallet demo services. Run `ddev artisan config:clear` after changing it. `/sign-custom-file` keeps the existing
-hosted, API, digest, sandbox e-Seal and multiple-signer flows, with PDF, combined
-ASiC-E, separate ASiC-E and enveloped XAdES output choices.
+The homepage links to **Digital signatures**, **OAuth 2.0 login**, and **Digital identity wallets**.
+The wallet card defaults to https://eudiw-playground.eideasy.com/.
+Set `EID_WALLET_DEMOS_URL=http://localhost:5173/` in `.env` to try the local wallet demos.
+Run `ddev artisan config:clear` after changing it.
 
-Choose your own file or try the fictional sample PDF. PDF preview runs locally with
-self-hosted PDF.js assets; the document is submitted to this backend only when you
-continue. Placement supports click/drag, keyboard arrows (Shift for ten-point steps),
-presets and manual coordinates. Coordinates are PDF points from the bottom-left;
-page numbers in the UI start at 1 and map to zero-based API indexes. The marker is
-an approximate guide: final visual size and collision avoidance belong to the signing
-service. Automatic placement leaves X/Y unset. Unsupported or encrypted PDFs fall
-back to manual coordinates or automatic placement. Non-PDF formats omit PDF controls.
-PDF signing requires one PDF; it does not silently discard additional files.
+In the signing playground (`/sign-custom-file`), choose **eID Easy signing page**,
+**Embedded signing widget**, **Digest signing**, **Automatic e-Seal**, or **Multiple signers**.
+Available output formats depend on the flow. PDF signing accepts one PDF per request.
+
+Use a test file or select **Or try a sample PDF**. The preview runs locally with
+self-hosted PDF.js assets. The demo uploads the document to its backend when you continue.
+
+With a working PDF preview, use the dashed safe area to position the signature by clicking,
+dragging, using the arrow keys (Shift for ten-point steps), choosing a preset, or entering
+coordinates. X and Y are PDF points measured from the bottom-left corner. The UI counts pages
+from 1 and sends zero-based page indexes to the API. Positions outside the safe area block
+submission. The signing service determines the final size and may adjust the position to
+avoid existing signatures.
+
+If the PDF preview fails, choose **Automatic** to clear the coordinates or select **Hide visual
+signature**. You can also try a different PDF.
 
 Build and verify with the project's DDEV runtime:
 
