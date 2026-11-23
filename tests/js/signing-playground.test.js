@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const { webcrypto, createHash } = require('node:crypto');
 const coordinates = require('../../resources/js/signature-coordinates');
 
-function fixture(contents) {
+function fixture(contents, beforePageLoad = () => {}) {
     const nodes = new Map();
     function node() {
         return { value: '', files: [], style: {}, dataset: {}, firstChild: {}, checked: false,
@@ -17,9 +17,24 @@ function fixture(contents) {
     }
     const get = id => { if (!nodes.has(id)) nodes.set(id, node()); return nodes.get(id); };
     const form = get('signing-playground');
-    form.querySelectorAll = () => [];
-    form.querySelector = selector => selector.includes(':checked + span') ? { textContent: 'PDF' }
-        : selector.includes(':checked') ? { value: 'pdf' } : get(selector);
+    let selectedFormat = 'pdf';
+    const options = ['pdf', 'asice', 'enveloped-xades'].map(value => {
+        const option = node();
+        option.value = value;
+        option.click = () => {
+            selectedFormat = value;
+            option.handlers.change();
+        };
+        return option;
+    });
+    const optionFor = value => options.find(option => option.value === value);
+    form.querySelectorAll = selector => selector === 'input[name="containerType"]' ? options : [];
+    form.querySelector = selector => {
+        if (selector.includes(':checked + span')) return { textContent: selectedFormat };
+        if (selector.includes(':checked')) return optionFor(selectedFormat);
+        const match = selector.match(/\[value="([^"]+)"\]/);
+        return match ? optionFor(match[1]) : get(selector);
+    };
     get('signType').options = [{ text: 'Hosted signing' }];
     get('signType').selectedIndex = 0;
     get('pdf_x').value = '900'; get('pdf_y').value = '900';
@@ -29,6 +44,7 @@ function fixture(contents) {
     const loadedPages = [];
     const pdf = { numPages: 2, destroy() {}, getPage: async number => {
         loadedPages.push(number);
+        await beforePageLoad(number);
         return { view: [0, 0, 595, 842], getViewport: () => ({ width: 595, height: 842,
             convertToViewportRectangle: rectangle => rectangle }),
             render: () => ({ promise: Promise.resolve(), cancel() {} }) };
@@ -45,7 +61,7 @@ function fixture(contents) {
             arrayBuffer: async () => data }];
         await get('unsigned_file').handlers.change();
     }
-    return { get, select, loadedPages };
+    return { get, select, loadedPages, optionFor };
 }
 
 test('same upload after validation restores and bounds-checks coordinates and page', async () => {
@@ -78,4 +94,56 @@ test('different PDF with the same name resets restored placement', async () => {
 test('shipped playground bundle initializes without module-format errors', () => {
     const bundle = fs.readFileSync(require.resolve('../../public/js/signing-playground.js'), 'utf8');
     assert.doesNotThrow(() => vm.runInNewContext(bundle, { document: { getElementById: () => null } }));
+});
+
+test('format suggestion switches incompatible selections without replacing the files', async () => {
+    const app = fixture(Buffer.from('%PDF test'));
+    const input = app.get('unsigned_file');
+    const suggestion = app.get('suggested-format');
+
+    app.optionFor('enveloped-xades').click();
+    await app.select(Buffer.from('%PDF test'));
+    assert.equal(suggestion.textContent, 'Switch to PDF');
+    suggestion.handlers.click();
+    assert.equal(suggestion.hidden, true);
+    assert.equal(input.files[0].name, 'same-name.pdf');
+
+    const files = [...input.files, { name: 'notes.txt', size: 12 }];
+    input.files = files;
+    await input.handlers.change();
+    assert.equal(suggestion.textContent, 'Switch to ASiC-E');
+    suggestion.handlers.click();
+    assert.equal(app.get('file-feedback').hidden, true);
+    assert.equal(input.files, files);
+});
+
+test('a PDF selected under ASiC-E retains its fingerprint after switching to PDF', async () => {
+    const original = Buffer.from('%PDF original document');
+    const app = fixture(original);
+    app.optionFor('asice').click();
+    await app.select(original);
+    assert.equal(app.get('placement-document-fingerprint').value, createHash('sha256').update(original).digest('hex'));
+    app.optionFor('pdf').click();
+    assert.equal(app.get('start-signing').disabled, true);
+});
+
+test('submission waits for the new page and its placement bounds', async () => {
+    const original = Buffer.from('%PDF original document');
+    let finishPage;
+    const pageReady = new Promise(resolve => { finishPage = resolve; });
+    const app = fixture(original, number => number === 2 ? pageReady : undefined);
+    app.get('pdf_page').value = '1';
+    await app.select(original);
+
+    const changing = app.get('next-page').handlers.click();
+    assert.equal(app.get('start-signing').disabled, true);
+    assert.equal(app.get('pdf_page_index').value, 0);
+    let prevented = false;
+    app.get('signing-playground').handlers.submit({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+
+    finishPage();
+    await changing;
+    assert.equal(app.get('pdf_page_index').value, 1);
+    assert.equal(app.get('start-signing').disabled, false);
 });

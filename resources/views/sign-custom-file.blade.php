@@ -34,7 +34,10 @@
                     </div>
                     <button type="button" class="sample-file-button" id="use-sample-file">Or try a sample PDF</button>
                     <ul class="selected-files" id="selected-files" aria-label="Selected files"></ul>
-                    <p class="field-error" id="file-error" role="alert" hidden></p>
+                    <div class="field-error" id="file-feedback" hidden>
+                        <div id="file-error" role="alert"></div>
+                        <button type="button" id="suggested-format" class="format-suggestion" hidden></button>
+                    </div>
                     <p class="field-hint">Preview stays in your browser. Continuing uploads the file for signing.</p>
                 </div>
                 <div class="setup-section">
@@ -58,10 +61,10 @@
                 <div class="setup-section optional-settings">
                     <details @if($errors->hasAny(['simple_email','simple_sms','simple_firstname','simple_lastname'])) open @endif>
                         <summary><i data-lucide="user-round" aria-hidden="true"></i>Simple signature details <span class="optional-label">Optional</span></summary>
-                        <p class="field-hint">Provide an email, a phone number or both for a simple-signature invitation. Names supplied here are unverified.</p>
-                        <label for="simple_email">Email</label><input type="email" name="simple_email" id="simple_email" value="{{ old('simple_email') }}" autocomplete="email" data-event-name-onchange="signing_demo_simple_signature_email_changed">
-                        <label for="simple_sms">Phone number</label><input type="tel" name="simple_sms" id="simple_sms" value="{{ old('simple_sms') }}" placeholder="+372…" autocomplete="tel" data-event-name-onchange="signing_demo_phone_changed"><p class="field-hint">Include the country code, for example +37255512345.</p>
-                        <div class="input-pair"><div><label for="simple_firstname">First name</label><input name="simple_firstname" id="simple_firstname" value="{{ old('simple_firstname') }}" autocomplete="given-name" data-event-name-onchange="signing_demo_first_name_changed"></div><div><label for="simple_lastname">Last name</label><input name="simple_lastname" id="simple_lastname" value="{{ old('simple_lastname') }}" autocomplete="family-name" data-event-name-onchange="signing_demo_last_name_changed"></div></div>
+                        <p class="field-hint">Enter the contact details of the person who needs to sign. When you continue and the document is prepared successfully, eID Easy sends that signer an invitation by email, SMS, or both, depending on what you provide. Leave these fields empty to skip the invitation. Names entered here are unverified.</p>
+                        <label for="simple_email">Signer’s email</label><input type="email" name="simple_email" id="simple_email" value="{{ old('simple_email') }}" autocomplete="email" data-event-name-onchange="signing_demo_simple_signature_email_changed">
+                        <label for="simple_sms">Signer’s mobile number</label><input type="tel" name="simple_sms" id="simple_sms" value="{{ old('simple_sms') }}" placeholder="+372…" autocomplete="tel" data-event-name-onchange="signing_demo_phone_changed"><p class="field-hint">Include the country code, for example +37255512345.</p>
+                        <div class="input-pair"><div><label for="simple_firstname">Signer’s first name</label><input name="simple_firstname" id="simple_firstname" value="{{ old('simple_firstname') }}" autocomplete="given-name" data-event-name-onchange="signing_demo_first_name_changed"></div><div><label for="simple_lastname">Signer’s last name</label><input name="simple_lastname" id="simple_lastname" value="{{ old('simple_lastname') }}" autocomplete="family-name" data-event-name-onchange="signing_demo_last_name_changed"></div></div>
                     </details>
                     <details @if($errors->has('redirect_uri')) open @endif><summary><i data-lucide="link" aria-hidden="true"></i>Redirect settings <span class="optional-label">Optional</span></summary><label for="redirect_uri">Return URL after signing</label><input type="url" name="redirect_uri" id="redirect_uri" value="{{ old('redirect_uri') }}" placeholder="https://your-app.example/complete" data-event-name-onchange="signing_demo_redirect_url_typed"><p class="field-hint">Leave empty to return here and download the signed file.</p></details>
                 </div>

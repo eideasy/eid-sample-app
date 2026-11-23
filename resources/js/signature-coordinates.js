@@ -18,10 +18,10 @@ function pageIndex(displayPage, pageCount) {
 function fileProblem(files, format) {
     if (!files.length) return 'Choose at least one file to continue.';
     if (format === 'pdf') {
-        if (files.length !== 1) return 'PDF signing accepts one PDF. Choose one file or use an ASiC-E format for multiple files.';
-        if (files[0].type !== 'application/pdf' && !/\.pdf$/i.test(files[0].name)) return 'Choose a PDF, or switch to ASiC-E to sign this file.';
+        if (files.length !== 1) return 'PDF signing accepts one file at a time.';
+        if (files[0].type !== 'application/pdf' && !/\.pdf$/i.test(files[0].name)) return 'Choose a PDF for this format.';
     }
-    if (format === 'enveloped-xades' && files.some(file => !/\.xml$/i.test(file.name))) return 'Enveloped XAdES requires XML files. Choose XML or use an ASiC-E format.';
+    if (format === 'enveloped-xades' && files.some(file => !/\.xml$/i.test(file.name))) return 'The XML format requires XML files.';
     return '';
 }
 

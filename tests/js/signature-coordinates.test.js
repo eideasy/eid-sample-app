@@ -16,7 +16,7 @@ test('human page numbers map to valid zero-based API indexes', () => {
 test('PDF signing cannot silently discard extra files or accept a non-PDF', () => {
     const pdf = { name: 'document.pdf', type: 'application/pdf' };
     assert.equal(fileProblem([pdf], 'pdf'), '');
-    assert.match(fileProblem([pdf, pdf], 'pdf'), /one PDF/);
+    assert.match(fileProblem([pdf, pdf], 'pdf'), /one file/);
     assert.match(fileProblem([{ name: 'photo.jpg', type: 'image/jpeg' }], 'pdf'), /Choose a PDF/);
     assert.equal(fileProblem([{ name: 'photo.jpg' }, pdf], 'asice'), '');
     assert.match(fileProblem([{ name: 'document.pdf' }], 'enveloped-xades'), /XML/);

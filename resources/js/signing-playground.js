@@ -5,6 +5,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     if (!form) return;
     const el = id => document.getElementById(id);
     const input = el('unsigned_file');
+    const formatSuggestion = el('suggested-format');
     const xInput = el('pdf_x');
     const yInput = el('pdf_y');
     const pageInput = el('pdf_page');
@@ -27,17 +28,43 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     let dimensions = null;
     let submitting = false;
     let selectingFile = false;
+    let loadingPreview = false;
+    let loadingPage = false;
     let selectionGeneration = 0;
     const format = () => form.querySelector('input[name="containerType"]:checked').value;
     const pdfSelected = () => format() === 'pdf';
     const hasCustomPosition = () => xInput.value !== '' && yInput.value !== '';
     const describe = message => { el('preview-message').textContent = message; };
 
-    function showProblem(message) {
+    function updateSubmitAvailability() {
+        el('start-signing').disabled = submitting || selectingFile || loadingPreview || loadingPage;
+    }
+
+    function showProblem(message, suggestedFormat = '') {
         el('file-error').textContent = message;
-        el('file-error').hidden = !message;
+        el('file-feedback').hidden = !message;
+        formatSuggestion.hidden = !suggestedFormat;
+        formatSuggestion.value = suggestedFormat;
+        formatSuggestion.textContent = suggestedFormat === 'pdf' ? 'Switch to PDF' : 'Switch to ASiC-E';
         input.setAttribute('aria-invalid', message ? 'true' : 'false');
     }
+
+    function validateFiles({ requireFiles = false } = {}) {
+        const files = Array.from(input.files);
+        const problem = files.length || requireFiles ? fileProblem(files, format()) : '';
+        // Prefer a signed PDF for a single PDF. ASiC-E keeps every file in one bundle.
+        const suggestedFormat = problem && files.length ? (fileProblem(files, 'pdf') ? 'asice' : 'pdf') : '';
+        showProblem(problem, suggestedFormat);
+        return problem;
+    }
+
+    formatSuggestion.addEventListener('click', () => {
+        const option = form.querySelector(`input[name="containerType"][value="${formatSuggestion.value}"]`);
+        if (option) {
+            option.click();
+            option.focus();
+        }
+    });
 
     function updateSummary() {
         const count = input.files.length;
@@ -85,47 +112,82 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         if (!documentPdf) return;
         const revision = ++renderGeneration;
         const currentDocument = documentPdf;
-        // Cancellation must settle before the same canvas can be reused.
-        if (renderTask) renderTask.cancel();
-        await pendingRender.catch(() => {});
-        if (revision !== renderGeneration || currentDocument !== documentPdf) return;
-        const loadedPage = await currentDocument.getPage(currentPage);
-        if (revision !== renderGeneration || currentDocument !== documentPdf) return;
-        page = loadedPage;
-        const base = page.getViewport({ scale: 1 });
-        const maxWidth = Math.max(100, stage.clientWidth - 48);
-        const maxHeight = window.innerWidth > 900 ? 390 : 560;
-        const scale = Math.min(maxWidth / base.width, maxHeight / base.height, 1.6);
-        viewport = page.getViewport({ scale });
-        const canvas = el('pdf-canvas');
-        const density = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.floor(viewport.width * density);
-        canvas.height = Math.floor(viewport.height * density);
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
-        paper.style.width = `${viewport.width}px`;
-        paper.style.height = `${viewport.height}px`;
-        paper.hidden = false;
-        el('preview-empty').hidden = true;
-        el('page-navigation').hidden = false;
-        el('page-status').textContent = `Page ${currentPage} of ${documentPdf.numPages}`;
-        el('previous-page').disabled = currentPage === 1;
-        el('next-page').disabled = currentPage === documentPdf.numPages;
-        pageInput.value = currentPage;
-        pageInput.max = documentPdf.numPages;
-        pageIndexInput.value = currentPage - 1;
-        xInput.max = Math.floor(page.view[2]);
-        yInput.max = Math.floor(page.view[3]);
-        if (hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
+        loadingPage = true;
+        page = null;
+        pointerOffset = null;
         updateAppearance();
-        renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: density === 1 ? null : [density, 0, 0, density, 0, 0] });
-        pendingRender = renderTask.promise;
-        try { await pendingRender; } catch (error) { if (error.name !== 'RenderingCancelledException') throw error; }
+        updateSubmitAvailability();
+        try {
+            // Cancellation must settle before the same canvas can be reused.
+            if (renderTask) renderTask.cancel();
+            await pendingRender.catch(() => {});
+            if (revision !== renderGeneration || currentDocument !== documentPdf) return;
+            const loadedPage = await currentDocument.getPage(currentPage);
+            if (revision !== renderGeneration || currentDocument !== documentPdf) return;
+            page = loadedPage;
+            const base = page.getViewport({ scale: 1 });
+            const maxWidth = Math.max(100, stage.clientWidth - 48);
+            const maxHeight = window.innerWidth > 900 ? 390 : 560;
+            const scale = Math.min(maxWidth / base.width, maxHeight / base.height, 1.6);
+            viewport = page.getViewport({ scale });
+            const canvas = el('pdf-canvas');
+            const density = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.floor(viewport.width * density);
+            canvas.height = Math.floor(viewport.height * density);
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
+            paper.style.width = `${viewport.width}px`;
+            paper.style.height = `${viewport.height}px`;
+            paper.hidden = false;
+            el('preview-empty').hidden = true;
+            el('page-navigation').hidden = false;
+            el('page-status').textContent = `Page ${currentPage} of ${documentPdf.numPages}`;
+            el('previous-page').disabled = currentPage === 1;
+            el('next-page').disabled = currentPage === documentPdf.numPages;
+            pageInput.value = currentPage;
+            pageInput.max = documentPdf.numPages;
+            pageIndexInput.value = currentPage - 1;
+            xInput.max = Math.floor(page.view[2]);
+            yInput.max = Math.floor(page.view[3]);
+            if (hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
+            updateAppearance();
+            renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: density === 1 ? null : [density, 0, 0, density, 0, 0] });
+            pendingRender = renderTask.promise;
+            try { await pendingRender; } catch (error) { if (error.name !== 'RenderingCancelledException') throw error; }
+        } catch (error) {
+            if (revision !== renderGeneration) return;
+            currentDocument.destroy();
+            documentPdf = null;
+            loadingTask = null;
+            showPreviewUnavailable();
+        } finally {
+            if (revision === renderGeneration) {
+                loadingPage = false;
+                updateSubmitAvailability();
+            }
+        }
+    }
+
+    function showPreviewUnavailable() {
+        paper.hidden = true;
+        page = null;
+        viewport = null;
+        el('preview-empty').hidden = false;
+        el('page-navigation').hidden = true;
+        pageInput.value = currentPage;
+        pageIndexInput.value = currentPage - 1;
+        xInput.removeAttribute('max');
+        yInput.removeAttribute('max');
+        describe('This PDF could not be previewed. It may be encrypted or unsupported. Choose another file, or use automatic placement or the numeric fields.');
+        updateAppearance();
     }
 
     async function loadPreview() {
         const revision = ++generation;
         ++renderGeneration;
+        loadingPreview = false;
+        loadingPage = false;
+        updateSubmitAvailability();
         if (renderTask) renderTask.cancel();
         if (loadingTask) loadingTask.destroy();
         if (documentPdf) documentPdf.destroy();
@@ -144,6 +206,9 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         if (!files.length) { describe('Choose a PDF to preview it and position its visual signature. Other files can be signed in an ASiC-E container.'); return; }
         if (!pdfSelected()) { describe(fileProblem(files, format()) || 'Your files are ready for the selected container format. PDF appearance settings are not used for this format.'); return; }
         if (fileProblem(files, 'pdf')) { describe('Choose a single PDF to open the placement preview.'); return; }
+        currentPage = Math.max(1, Math.trunc(Number(pageInput.value) || 1));
+        loadingPreview = true;
+        updateSubmitAvailability();
         describe('Opening your PDF locally…');
         try {
             const pdfjs = await import(/* webpackIgnore: true */ '/js/vendor/pdfjs/pdf.js');
@@ -160,13 +225,12 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             currentPage = pageIndex(pageInput.value, documentPdf.numPages) + 1;
             await renderPage();
         } catch (error) {
-            if (revision !== generation) return;
-            paper.hidden = true;
-            page = null;
-            el('preview-empty').hidden = false;
-            el('page-navigation').hidden = true;
-            describe('This PDF could not be previewed. It may be encrypted or unsupported. Choose another file, or use automatic placement or the numeric fields.');
-            updateAppearance();
+            if (revision === generation) showPreviewUnavailable();
+        } finally {
+            if (revision === generation) {
+                loadingPreview = false;
+                updateSubmitAvailability();
+            }
         }
     }
 
@@ -178,11 +242,11 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         const fingerprint = fingerprintInput.value;
         fingerprintInput.value = '';
         selectingFile = true;
-        el('start-signing').disabled = true;
+        updateSubmitAvailability();
         // Old input includes this local content fingerprint after validation.
         // A different PDF must reset placement even if it reuses the filename.
-        const selectedFingerprint = input.files.length === 1 && pdfSelected()
-            ? await documentFingerprint(input.files[0]) : '';
+        const files = Array.from(input.files);
+        const selectedFingerprint = fileProblem(files, 'pdf') ? '' : await documentFingerprint(files[0]);
         if (revision !== selectionGeneration) return;
         const sameDocument = fingerprint !== '' && fingerprint === selectedFingerprint;
         fingerprintInput.value = selectedFingerprint;
@@ -212,13 +276,13 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             item.append(text, size, remove);
             list.append(item);
         });
-        showProblem(input.files.length ? fileProblem(Array.from(input.files), format()) : '');
+        validateFiles();
         updateSummary();
         try { await loadPreview(); }
         finally {
             if (revision === selectionGeneration) {
                 selectingFile = false;
-                el('start-signing').disabled = false;
+                updateSubmitAvailability();
             }
         }
     }
@@ -246,7 +310,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     form.querySelectorAll('input[name="containerType"]').forEach(radio => radio.addEventListener('change', () => {
         form.querySelectorAll('[data-format]').forEach(node => { node.hidden = node.dataset.format !== format(); });
         input.accept = pdfSelected() ? '.pdf,application/pdf' : format() === 'enveloped-xades' ? '.xml,text/xml,application/xml' : '';
-        showProblem(input.files.length ? fileProblem(Array.from(input.files), format()) : '');
+        validateFiles();
         updateSummary();
         loadPreview();
     }));
@@ -302,9 +366,8 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     ['dragleave','drop'].forEach(type => drop.addEventListener(type, () => drop.classList.remove('dragging')));
     drop.addEventListener('drop', event => { event.preventDefault(); if (!event.dataTransfer.files.length) return; input.files = event.dataTransfer.files; input.dispatchEvent(new Event('change', { bubbles: true })); });
     form.addEventListener('submit', event => {
-        if (submitting || selectingFile) { event.preventDefault(); return; }
-        const problem = fileProblem(Array.from(input.files), format());
-        showProblem(problem);
+        if (submitting || selectingFile || loadingPreview || loadingPage) { event.preventDefault(); return; }
+        const problem = validateFiles({ requireFiles: true });
         if (problem) { event.preventDefault(); input.focus(); return; }
         if (pdfSelected() && !hiddenVisual.checked && ((xInput.value === '') !== (yInput.value === ''))) {
             event.preventDefault(); showProblem('Enter both X and Y coordinates, or clear both for automatic placement.'); (xInput.value === '' ? xInput : yInput).focus(); return;
@@ -313,7 +376,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         el('start-signing').disabled = true;
         el('start-signing').textContent = 'Preparing your document…';
     });
-    window.addEventListener('pageshow', () => { submitting = false; el('start-signing').disabled = false; updateSummary(); });
+    window.addEventListener('pageshow', () => { submitting = false; updateSubmitAvailability(); updateSummary(); });
     if (window.ResizeObserver) {
         let timer;
         new ResizeObserver(entries => {
