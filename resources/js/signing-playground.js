@@ -295,17 +295,24 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     input.addEventListener('change', fileChange);
     el('use-sample-file').addEventListener('click', async event => {
         const button = event.currentTarget;
+        const revision = selectionGeneration;
         button.disabled = true;
         try {
             const response = await fetch('/samples/signing-demo.pdf');
             if (!response.ok) throw new Error('Sample unavailable');
+            const blob = await response.blob();
+            if (revision !== selectionGeneration || submitting) return;
             const transfer = new DataTransfer();
-            transfer.items.add(new File([await response.blob()], 'sample-agreement.pdf', { type: 'application/pdf' }));
+            transfer.items.add(new File([blob], 'sample-agreement.pdf', { type: 'application/pdf' }));
             input.files = transfer.files;
             form.querySelector('input[name="containerType"][value="pdf"]').checked = true;
             updateFormatControls();
             input.dispatchEvent(new Event('change', { bubbles: true }));
-        } catch (error) { showProblem('The sample could not be loaded. Please choose a file instead.'); }
+        } catch (error) {
+            if (revision === selectionGeneration && !submitting) {
+                showProblem('The sample could not be loaded. Please choose a file instead.');
+            }
+        }
         finally { button.disabled = false; }
     });
     flow.addEventListener('change', () => {

@@ -6,7 +6,7 @@ const { File } = require('node:buffer');
 const { webcrypto, createHash } = require('node:crypto');
 const coordinates = require('../../resources/js/signature-coordinates');
 
-function fixture(contents, beforePageLoad = () => {}) {
+function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => new Blob([contents])) {
     const nodes = new Map();
     function node() {
         return { value: '', files: [], style: {}, dataset: {}, firstChild: {}, checked: false,
@@ -59,7 +59,7 @@ function fixture(contents, beforePageLoad = () => {}) {
     vm.runInNewContext(source, { require: () => ({ ...coordinates, documentFingerprint: file => coordinates.documentFingerprint(file, webcrypto) }),
         document: { getElementById: id => id === 'validation-errors' ? null : get(id), createElement: node },
         window: { innerWidth: 1200, addEventListener() {} },
-        fetch: async () => ({ ok: true, blob: async () => new Blob([contents]) }),
+        fetch: async () => ({ ok: true, blob: sampleBlob }),
         File,
         Event,
         DataTransfer: class {
@@ -169,4 +169,20 @@ test('sample PDF selection replaces the XML-only file picker filter', async () =
     await sampleButton.handlers.click({ currentTarget: sampleButton });
     assert.equal(app.get('unsigned_file').files[0].name, 'sample-agreement.pdf');
     assert.equal(app.get('unsigned_file').accept, '.pdf,application/pdf');
+});
+
+test('a late sample download keeps the newer file and output format', async () => {
+    let completeDownload;
+    const blob = new Promise(resolve => { completeDownload = resolve; });
+    const original = Buffer.from('%PDF original');
+    const app = fixture(original, undefined, () => blob);
+    const sampleButton = app.get('use-sample-file');
+    const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
+    app.optionFor('asice').click();
+    await app.select(original);
+    completeDownload(new Blob(['%PDF sample']));
+    await downloading;
+    assert.equal(app.get('unsigned_file').files[0].name, 'same-name.pdf');
+    assert.equal(app.get('unsigned_file').accept, '');
+    assert.equal(sampleButton.disabled, false);
 });

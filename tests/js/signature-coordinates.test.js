@@ -7,6 +7,12 @@ test('placement stays inside the actual page dimensions, including a cropped pag
     assert.deepEqual(fitPlacement(0, 0, [20, 30, 400, 600]), { x: 20, y: 30, width: 180, height: 60 });
     assert.deepEqual(fitPlacement(100, 100, [0, 0, 90, 40]), { x: 0, y: 0, width: 90, height: 40 });
 });
+test('integer coordinates keep the signature guide inside fractional page bounds', () => {
+    const bounds = [20.25, 30.25, 400.75, 600.75];
+    assert.deepEqual(fitPlacement(0, 0, bounds), { x: 21, y: 31, width: 180, height: 60 });
+    assert.deepEqual(fitPlacement(900, 900, bounds), { x: 220, y: 540, width: 180, height: 60 });
+    assert.deepEqual(fitPlacement(900, 900, [0.5, 0.5, 90.5, 40.5]), { x: 1, y: 1, width: 89.5, height: 39.5 });
+});
 test('human page numbers map to valid zero-based API indexes', () => {
     assert.equal(pageIndex(1, 3), 0);
     assert.equal(pageIndex(3, 3), 2);

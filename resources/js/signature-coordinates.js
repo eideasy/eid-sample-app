@@ -4,11 +4,16 @@ function clamp(value, min, max) {
 }
 
 function fitPlacement(x, y, bounds, width = 180, height = 60) {
-    const left = Math.max(0, bounds[0]);
-    const bottom = Math.max(0, bounds[1]);
-    const w = Math.min(width, bounds[2] - left);
-    const h = Math.min(height, bounds[3] - bottom);
-    return { x: Math.round(clamp(x, left, bounds[2] - w)), y: Math.round(clamp(y, bottom, bounds[3] - h)), width: w, height: h };
+    const left = Math.ceil(Math.max(0, bounds[0]));
+    const bottom = Math.ceil(Math.max(0, bounds[1]));
+    const w = Math.max(0, Math.min(width, bounds[2] - left));
+    const h = Math.max(0, Math.min(height, bounds[3] - bottom));
+    return {
+        x: clamp(Math.round(x), left, Math.floor(bounds[2] - w)),
+        y: clamp(Math.round(y), bottom, Math.floor(bounds[3] - h)),
+        width: w,
+        height: h,
+    };
 }
 
 function pageIndex(displayPage, pageCount) {
