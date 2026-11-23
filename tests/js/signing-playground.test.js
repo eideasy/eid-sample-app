@@ -186,3 +186,35 @@ test('a late sample download keeps the newer file and output format', async () =
     assert.equal(app.get('unsigned_file').accept, '');
     assert.equal(sampleButton.disabled, false);
 });
+
+test('changing only the output format cancels a pending sample download', async () => {
+    let completeDownload;
+    const blob = new Promise(resolve => { completeDownload = resolve; });
+    const app = fixture(Buffer.from('%PDF original'), undefined, () => blob);
+    const sampleButton = app.get('use-sample-file');
+    const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
+    app.optionFor('enveloped-xades').click();
+    completeDownload(new Blob(['%PDF sample']));
+    await downloading;
+    assert.equal(app.get('unsigned_file').files.length, 0);
+    assert.equal(app.get('unsigned_file').accept, '.xml,text/xml,application/xml');
+});
+
+test('PDF digest signing keeps the preview and disables appearance controls', async () => {
+    const original = Buffer.from('%PDF original');
+    const app = fixture(original);
+    await app.select(original);
+    const flow = app.get('signType');
+    flow.value = 'digest';
+    flow.handlers.change();
+    assert.equal(app.get('pdf-page').hidden, false);
+    assert.equal(app.get('appearance-controls').disabled, true);
+    assert.equal(app.get('signature-marker').hidden, true);
+    assert.equal(app.get('digest-appearance-note').hidden, false);
+
+    flow.value = 'external';
+    flow.handlers.change();
+    assert.equal(app.get('appearance-controls').disabled, false);
+    assert.equal(app.get('signature-marker').hidden, false);
+    assert.equal(app.get('digest-appearance-note').hidden, true);
+});

@@ -84,6 +84,7 @@
                         <p class="field-hint" id="preview-note">The placement guide is approximate. The signing service determines the final appearance and may move it to avoid existing signatures.</p>
                     </div>
                 </fieldset>
+                <p class="non-pdf-note" id="digest-appearance-note" hidden>The PDF digest helper controls the signature appearance. Custom placement and visibility are unavailable in this flow.</p>
                 <p class="non-pdf-note" id="non-pdf-note" hidden>Visual placement applies to PDF signatures. Your chosen format signs the file contents without a PDF appearance.</p>
             </section>
         </div>

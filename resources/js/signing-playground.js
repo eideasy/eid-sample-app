@@ -31,8 +31,10 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     let loadingPreview = false;
     let loadingPage = false;
     let selectionGeneration = 0;
+    let sampleGeneration = 0;
     const format = () => form.querySelector('input[name="containerType"]:checked').value;
     const pdfSelected = () => format() === 'pdf';
+    const appearanceAvailable = () => pdfSelected() && flow.value !== 'digest';
     const hasCustomPosition = () => xInput.value !== '' && yInput.value !== '';
     const describe = message => { el('preview-message').textContent = message; };
 
@@ -80,7 +82,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     }
 
     function updateMarker() {
-        marker.hidden = !page || !hasCustomPosition() || hiddenVisual.checked || !pdfSelected();
+        marker.hidden = !page || !hasCustomPosition() || hiddenVisual.checked || !appearanceAvailable();
         if (marker.hidden || !viewport) return;
         const place = fitPlacement(Number(xInput.value), Number(yInput.value), page.view);
         const rect = viewport.convertToViewportRectangle([place.x, place.y, place.x + place.width, place.y + place.height]);
@@ -103,11 +105,14 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
 
     function updateAppearance() {
         const pdf = pdfSelected();
-        el('appearance-controls').disabled = !pdf;
-        el('appearance-controls').hidden = !pdf;
+        const available = appearanceAvailable();
+        el('appearance-controls').disabled = !available;
+        el('appearance-controls').hidden = !available;
         el('non-pdf-note').hidden = pdf;
-        // Disabled controls do not leak stale PDF coordinates into ASiC-E/XML requests.
-        [xInput, yInput, pageInput, pageIndexInput].forEach(field => { field.disabled = !pdf || hiddenVisual.checked; });
+        el('digest-appearance-note').hidden = !pdf || available;
+        [xInput, yInput, pageInput, pageIndexInput].forEach(field => {
+            field.disabled = !available || hiddenVisual.checked;
+        });
         el('placement-fields').hidden = hiddenVisual.checked;
         form.querySelectorAll('[data-preset]').forEach(button => { button.disabled = !page && button.dataset.preset !== 'auto'; });
         updateMarker();
@@ -154,7 +159,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             pageIndexInput.value = currentPage - 1;
             xInput.max = Math.floor(page.view[2]);
             yInput.max = Math.floor(page.view[3]);
-            if (hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
+            if (appearanceAvailable() && hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
             updateAppearance();
             renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: density === 1 ? null : [density, 0, 0, density, 0, 0] });
             pendingRender = renderTask.promise;
@@ -240,6 +245,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     }
 
     async function fileChange() {
+        ++sampleGeneration;
         const revision = ++selectionGeneration;
         ++generation;
         ++renderGeneration;
@@ -295,13 +301,13 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     input.addEventListener('change', fileChange);
     el('use-sample-file').addEventListener('click', async event => {
         const button = event.currentTarget;
-        const revision = selectionGeneration;
+        const revision = ++sampleGeneration;
         button.disabled = true;
         try {
             const response = await fetch('/samples/signing-demo.pdf');
             if (!response.ok) throw new Error('Sample unavailable');
             const blob = await response.blob();
-            if (revision !== selectionGeneration || submitting) return;
+            if (revision !== sampleGeneration || submitting) return;
             const transfer = new DataTransfer();
             transfer.items.add(new File([blob], 'sample-agreement.pdf', { type: 'application/pdf' }));
             input.files = transfer.files;
@@ -309,7 +315,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             updateFormatControls();
             input.dispatchEvent(new Event('change', { bubbles: true }));
         } catch (error) {
-            if (revision === selectionGeneration && !submitting) {
+            if (revision === sampleGeneration && !submitting) {
                 showProblem('The sample could not be loaded. Please choose a file instead.');
             }
         }
@@ -317,9 +323,14 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     });
     flow.addEventListener('change', () => {
         form.querySelectorAll('[data-flow]').forEach(node => { node.hidden = node.dataset.flow !== flow.value; });
+        updateAppearance();
+        if (appearanceAvailable() && page && hasCustomPosition()) {
+            setPosition(Number(xInput.value), Number(yInput.value));
+        }
         updateSummary();
     });
     form.querySelectorAll('input[name="containerType"]').forEach(radio => radio.addEventListener('change', () => {
+        ++sampleGeneration;
         updateFormatControls();
         validateFiles();
         updateSummary();
@@ -347,7 +358,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         return viewport.convertToPdfPoint((event.clientX - rect.left) * viewport.width / rect.width, (event.clientY - rect.top) * viewport.height / rect.height);
     }
     paper.addEventListener('pointerdown', event => {
-        if (!page || hiddenVisual.checked || event.button !== 0) return;
+        if (!page || !appearanceAvailable() || hiddenVisual.checked || event.button !== 0) return;
         const point = pointFromEvent(event);
         const dragging = marker.contains(event.target) && hasCustomPosition();
         pointerOffset = dragging ? [point[0] - Number(xInput.value), point[1] - Number(yInput.value)] : [0, 0];
@@ -357,7 +368,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         event.preventDefault();
     });
     paper.addEventListener('pointermove', event => {
-        if (!pointerOffset || !page) return;
+        if (!pointerOffset || !page || !appearanceAvailable()) return;
         const point = pointFromEvent(event);
         setPosition(point[0] - pointerOffset[0], point[1] - pointerOffset[1]);
     });
@@ -380,9 +391,10 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         if (submitting || selectingFile || loadingPreview || loadingPage) { event.preventDefault(); return; }
         const problem = validateFiles({ requireFiles: true });
         if (problem) { event.preventDefault(); input.focus(); return; }
-        if (pdfSelected() && !hiddenVisual.checked && ((xInput.value === '') !== (yInput.value === ''))) {
+        if (appearanceAvailable() && !hiddenVisual.checked && ((xInput.value === '') !== (yInput.value === ''))) {
             event.preventDefault(); showProblem('Enter both X and Y coordinates, or clear both for automatic placement.'); (xInput.value === '' ? xInput : yInput).focus(); return;
         }
+        ++sampleGeneration;
         submitting = true;
         el('start-signing').disabled = true;
         el('start-signing').textContent = 'Preparing your document…';
