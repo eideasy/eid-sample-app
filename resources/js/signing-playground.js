@@ -49,6 +49,11 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         input.setAttribute('aria-invalid', message ? 'true' : 'false');
     }
 
+    function updateFormatControls() {
+        form.querySelectorAll('[data-format]').forEach(node => { node.hidden = node.dataset.format !== format(); });
+        input.accept = pdfSelected() ? '.pdf,application/pdf' : format() === 'enveloped-xades' ? '.xml,text/xml,application/xml' : '';
+    }
+
     function validateFiles({ requireFiles = false } = {}) {
         const files = Array.from(input.files);
         const problem = files.length || requireFiles ? fileProblem(files, format()) : '';
@@ -298,7 +303,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             transfer.items.add(new File([await response.blob()], 'sample-agreement.pdf', { type: 'application/pdf' }));
             input.files = transfer.files;
             form.querySelector('input[name="containerType"][value="pdf"]').checked = true;
-            form.querySelectorAll('[data-format]').forEach(node => { node.hidden = node.dataset.format !== 'pdf'; });
+            updateFormatControls();
             input.dispatchEvent(new Event('change', { bubbles: true }));
         } catch (error) { showProblem('The sample could not be loaded. Please choose a file instead.'); }
         finally { button.disabled = false; }
@@ -308,8 +313,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         updateSummary();
     });
     form.querySelectorAll('input[name="containerType"]').forEach(radio => radio.addEventListener('change', () => {
-        form.querySelectorAll('[data-format]').forEach(node => { node.hidden = node.dataset.format !== format(); });
-        input.accept = pdfSelected() ? '.pdf,application/pdf' : format() === 'enveloped-xades' ? '.xml,text/xml,application/xml' : '';
+        updateFormatControls();
         validateFiles();
         updateSummary();
         loadPreview();
@@ -389,6 +393,6 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     }
     updateSummary();
     updateAppearance();
-    input.accept = pdfSelected() ? '.pdf,application/pdf' : format() === 'enveloped-xades' ? '.xml,text/xml,application/xml' : '';
+    updateFormatControls();
     if (el('validation-errors')) el('validation-errors').focus();
 })();

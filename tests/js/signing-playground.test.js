@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
+const { File } = require('node:buffer');
 const { webcrypto, createHash } = require('node:crypto');
 const coordinates = require('../../resources/js/signature-coordinates');
 
@@ -27,7 +28,11 @@ function fixture(contents, beforePageLoad = () => {}) {
         };
         return option;
     });
+    for (const option of options) {
+        Object.defineProperty(option, 'checked', { set(checked) { if (checked) selectedFormat = option.value; } });
+    }
     const optionFor = value => options.find(option => option.value === value);
+    get('unsigned_file').dispatchEvent = event => get('unsigned_file').handlers[event.type]();
     form.querySelectorAll = selector => selector === 'input[name="containerType"]' ? options : [];
     form.querySelector = selector => {
         if (selector.includes(':checked + span')) return { textContent: selectedFormat };
@@ -54,6 +59,13 @@ function fixture(contents, beforePageLoad = () => {}) {
     vm.runInNewContext(source, { require: () => ({ ...coordinates, documentFingerprint: file => coordinates.documentFingerprint(file, webcrypto) }),
         document: { getElementById: id => id === 'validation-errors' ? null : get(id), createElement: node },
         window: { innerWidth: 1200, addEventListener() {} },
+        fetch: async () => ({ ok: true, blob: async () => new Blob([contents]) }),
+        File,
+        Event,
+        DataTransfer: class {
+            files = [];
+            items = { add: file => this.files.push(file) };
+        },
         pdfjsStub: { GlobalWorkerOptions: {}, getDocument: () => ({ promise: Promise.resolve(pdf), destroy() {} }) },
     });
     async function select(data) {
@@ -146,4 +158,15 @@ test('submission waits for the new page and its placement bounds', async () => {
     await changing;
     assert.equal(app.get('pdf_page_index').value, 1);
     assert.equal(app.get('start-signing').disabled, false);
+});
+
+test('sample PDF selection replaces the XML-only file picker filter', async () => {
+    const app = fixture(Buffer.from('%PDF sample'));
+    app.optionFor('enveloped-xades').click();
+    assert.equal(app.get('unsigned_file').accept, '.xml,text/xml,application/xml');
+
+    const sampleButton = app.get('use-sample-file');
+    await sampleButton.handlers.click({ currentTarget: sampleButton });
+    assert.equal(app.get('unsigned_file').files[0].name, 'sample-agreement.pdf');
+    assert.equal(app.get('unsigned_file').accept, '.pdf,application/pdf');
 });
