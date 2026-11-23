@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SigningPlaygroundTest extends TestCase
@@ -22,9 +23,14 @@ class SigningPlaygroundTest extends TestCase
         parent::setUp();
         Storage::fake();
         config(['eideasy.api_url' => 'https://signing.example', 'eideasy.client_id' => 'demo-client', 'eideasy.secret' => 'demo-secret']);
-        $handler = HandlerStack::create(new MockHandler([new Response(200, [], json_encode([
+        $this->mockSigningApi(new Response(200, [], json_encode([
             'status' => 'OK', 'doc_id' => 'demo-document', 'available_methods' => [],
-        ]))]));
+        ])));
+    }
+
+    private function mockSigningApi(Response ...$responses): void
+    {
+        $handler = HandlerStack::create(new MockHandler($responses));
         $handler->push(Middleware::history($this->requests));
         $this->app->instance(Client::class, new Client(['handler' => $handler]));
     }
@@ -242,6 +248,80 @@ class SigningPlaygroundTest extends TestCase
             ->assertRedirect('/sign-custom-file')->assertSessionHas('message');
         $this->assertSame('https://sandbox.example/api/signatures/e-seal/create', (string) $this->requests[1]['request']->getUri());
         $this->get('/sign-custom-file')->assertOk()->assertSee('The sandbox could not create the e-Seal.');
+    }
+    public function testUnavailableSignedFilesReturnToTheDownloadPage(): void
+    {
+        Cache::put('doc_id-pending-file', 'pending-document');
+        $this->mockSigningApi(new Response(404, [], '{"status":"error"}'));
+
+        $this->get('/download-signed-file?file_id=pending-file')
+            ->assertRedirect('/show-download-signed-file?file_id=pending-file')
+            ->assertSessionHas('alert-class', 'alert-warning');
+        $this->get('/show-download-signed-file?file_id=pending-file')
+            ->assertOk()->assertSee('The signed files are unavailable.');
+        $this->assertCount(1, $this->requests);
+    }
+
+    #[DataProvider('signedFileFormats')]
+    public function testSignedFilesDownloadWithFormatSpecificHeaders(
+        string $format,
+        string $mimeType,
+        string $filename,
+        string $contents,
+    ): void {
+        Cache::put('doc_id-finished-file', 'finished-document');
+        Cache::put('containerType-finished-file', $format);
+        $this->mockSigningApi($this->signedFileResponse($filename, $contents));
+
+        $response = $this->get('/download-signed-file?file_id=finished-file')
+            ->assertOk()
+            ->assertDownload()
+            ->assertHeader('Content-Type', $mimeType)
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertContent($contents);
+        $this->assertStringContainsString('filename*=utf-8\'\'' . rawurlencode($filename), $response->headers->get('Content-Disposition'));
+    }
+
+    public static function signedFileFormats(): array
+    {
+        return [
+            'PDF' => ['pdf', 'application/pdf', 'signed agreement.pdf', '%PDF-1.7 demo'],
+            'XML' => ['enveloped-xades', 'application/xml', 'signed invoice.xml', '<invoice/>'],
+        ];
+    }
+
+    public function testAddingASignatureUsesTheSessionDocumentIdForDownload(): void
+    {
+        $contents = 'test ASiC-E contents';
+        $this->mockSigningApi(
+            new Response(200, [], '{"doc_id":"add-signature-document"}'),
+            $this->signedFileResponse('signed.asice', $contents),
+        );
+
+        $this->post('/add-signature-signed-file', [
+            'signed_file' => UploadedFile::fake()->createWithContent('existing.asice', 'test input'),
+        ])->assertRedirect('https://signing.example/add-signature?client_id=demo-client&doc_id=add-signature-document');
+
+        $returnUrl = $this->prepared()['signature_redirect'];
+        $this->get($returnUrl)->assertOk()->assertSee('Download signed file');
+        $downloadUrl = str_replace('/show-download-signed-file?', '/download-signed-file?', $returnUrl);
+        $this->get($downloadUrl)->assertOk()->assertDownload()->assertContent($contents);
+
+        $request = $this->requests[1]['request'];
+        $this->assertSame('/api/signatures/download-signed-file', $request->getUri()->getPath());
+        $this->assertSame('add-signature-document', json_decode((string) $request->getBody(), true)['doc_id']);
+    }
+
+    private function signedFileResponse(string $filename, string $contents): Response
+    {
+        $encoded = base64_encode($contents);
+
+        return new Response(200, [], json_encode([
+            'status' => 'OK',
+            'filename' => $filename,
+            'signed_files' => [['name' => $filename, 'contents' => $encoded]],
+            'signed_file_contents' => $encoded,
+        ], JSON_THROW_ON_ERROR));
     }
 
 }
