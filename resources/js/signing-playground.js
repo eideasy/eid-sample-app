@@ -1,4 +1,4 @@
-const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = require('./signature-coordinates');
+const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pageIndex, fileProblem, documentFingerprint } = require('./signature-coordinates');
 
 (function () {
     const form = document.getElementById('signing-playground');
@@ -13,6 +13,8 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     const stage = el('preview-stage');
     const paper = el('pdf-page');
     const marker = el('signature-marker');
+    const safeArea = el('signature-safe-area');
+    const placementError = el('placement-error');
     const flow = el('signType');
     const hiddenVisual = el('hide_pdf_visual');
     let documentPdf = null;
@@ -30,6 +32,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     let selectingFile = false;
     let loadingPreview = false;
     let loadingPage = false;
+    let placementProblem = '';
     let selectionGeneration = 0;
     let sampleGeneration = 0;
     const format = () => form.querySelector('input[name="containerType"]:checked').value;
@@ -39,7 +42,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     const describe = message => { el('preview-message').textContent = message; };
 
     function updateSubmitAvailability() {
-        el('start-signing').disabled = submitting || selectingFile || loadingPreview || loadingPage;
+        el('start-signing').disabled = submitting || selectingFile || loadingPreview || loadingPage || Boolean(placementProblem);
     }
 
     function showProblem(message, suggestedFormat = '') {
@@ -52,6 +55,15 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     }
 
     function updateFormatControls() {
+        const selected = format();
+        form.querySelectorAll('input[name="containerType"]').forEach(option => {
+            if (option.value === 'enveloped-xades' || option.value === 'asice-for-each-file') {
+                option.disabled = flow.value === 'digest';
+            }
+        });
+        if (flow.value === 'digest' && selected !== 'pdf' && selected !== 'asice') {
+            form.querySelector('input[name="containerType"][value="asice"]').checked = true;
+        }
         form.querySelectorAll('[data-format]').forEach(node => { node.hidden = node.dataset.format !== format(); });
         input.accept = pdfSelected() ? '.pdf,application/pdf' : format() === 'enveloped-xades' ? '.xml,text/xml,application/xml' : '';
     }
@@ -81,23 +93,57 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         el('start-signing').firstChild.textContent = flow.value === 'eseal' ? 'Create sandbox e-Seal ' : flow.value === 'multisign' ? 'Set up signers ' : 'Continue to signing ';
     }
 
+    function positionOverlay(overlay, bounds) {
+        const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(bounds);
+        overlay.style.left = `${Math.min(x1, x2)}px`;
+        overlay.style.top = `${Math.min(y1, y2)}px`;
+        overlay.style.width = `${Math.abs(x2 - x1)}px`;
+        overlay.style.height = `${Math.abs(y2 - y1)}px`;
+    }
+
     function updateMarker() {
-        marker.hidden = !page || !hasCustomPosition() || hiddenVisual.checked || !appearanceAvailable();
-        if (marker.hidden || !viewport) return;
-        const place = fitPlacement(Number(xInput.value), Number(yInput.value), page.view);
-        const rect = viewport.convertToViewportRectangle([place.x, place.y, place.x + place.width, place.y + place.height]);
-        marker.style.left = `${Math.min(rect[0], rect[2])}px`;
-        marker.style.top = `${Math.min(rect[1], rect[3])}px`;
-        marker.style.width = `${Math.abs(rect[2] - rect[0])}px`;
-        marker.style.height = `${Math.abs(rect[3] - rect[1])}px`;
-        marker.classList.toggle('compact', Math.abs(rect[2] - rect[0]) < 130);
+        const editable = appearanceAvailable() && !hiddenVisual.checked;
+        const area = page && viewport ? placementArea(page.view) : null;
+        const areaFits = area && fitsPlacement(area.left, area.bottom, area);
+        const hasCoordinate = xInput.value !== '' || yInput.value !== '';
+        const x = Number(xInput.value);
+        const y = Number(yInput.value);
+        placementProblem = '';
+        if (editable && hasCoordinate && input.files.length) {
+            if (!hasCustomPosition()) {
+                placementProblem = 'Enter both coordinates, or choose Automatic to clear them.';
+            } else if (!area && !loadingPreview && !loadingPage && !selectingFile) {
+                placementProblem = 'Manual placement requires a PDF preview. Choose Automatic or try another PDF.';
+            } else if (area && !areaFits) {
+                placementProblem = 'This page is too small for manual placement. Choose another page, Automatic, or hide the visual signature.';
+            } else if (area && !fitsPlacement(x, y, area)) {
+                placementProblem = 'Move the entire signature inside the dashed safe area, or choose Automatic.';
+            }
+        }
+        placementError.hidden = !placementProblem;
+        if (placementError.textContent !== placementProblem) placementError.textContent = placementProblem;
+        [xInput, yInput].forEach(field => field.setAttribute('aria-invalid', placementProblem ? 'true' : 'false'));
+        updateSubmitAvailability();
+
+        safeArea.hidden = !editable || !areaFits;
+        if (!safeArea.hidden) positionOverlay(safeArea, [area.left, area.bottom, area.right, area.top]);
+        marker.hidden = !editable || !area || !hasCustomPosition();
+        marker.classList.toggle('placement-invalid', Boolean(placementProblem));
+        if (marker.hidden) return;
+
+        // Keep the marker reachable even if the typed coordinates are far outside the page.
+        const [left, bottom, right, top] = page.view;
+        const markerX = clamp(x, left, Math.max(left, right - signatureWidth));
+        const markerY = clamp(y, bottom, Math.max(bottom, top - signatureHeight));
+        positionOverlay(marker, [markerX, markerY, markerX + signatureWidth, markerY + signatureHeight]);
+        marker.classList.toggle('compact', Number.parseFloat(marker.style.width) < 130);
     }
 
     function setPosition(x, y) {
         if (!page) return;
-        const place = fitPlacement(x, y, page.view);
-        xInput.value = place.x;
-        yInput.value = place.y;
+        const [left, bottom, right, top] = page.view;
+        xInput.value = Math.round(clamp(x, Math.max(0, left), Math.max(0, right)));
+        yInput.value = Math.round(clamp(y, Math.max(0, bottom), Math.max(0, top)));
         pageIndexInput.value = currentPage - 1;
         pageInput.value = currentPage;
         updateMarker();
@@ -114,7 +160,10 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             field.disabled = !available || hiddenVisual.checked;
         });
         el('placement-fields').hidden = hiddenVisual.checked;
-        form.querySelectorAll('[data-preset]').forEach(button => { button.disabled = !page && button.dataset.preset !== 'auto'; });
+        const area = page ? placementArea(page.view) : null;
+        form.querySelectorAll('[data-preset]').forEach(button => {
+            button.disabled = button.dataset.preset !== 'auto' && (!area || !fitsPlacement(area.left, area.bottom, area));
+        });
         updateMarker();
     }
 
@@ -157,9 +206,6 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             pageInput.value = currentPage;
             pageInput.max = documentPdf.numPages;
             pageIndexInput.value = currentPage - 1;
-            xInput.max = Math.floor(page.view[2]);
-            yInput.max = Math.floor(page.view[3]);
-            if (appearanceAvailable() && hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
             updateAppearance();
             renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport, transform: density === 1 ? null : [density, 0, 0, density, 0, 0] });
             pendingRender = renderTask.promise;
@@ -173,7 +219,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         } finally {
             if (revision === renderGeneration) {
                 loadingPage = false;
-                updateSubmitAvailability();
+                updateMarker();
             }
         }
     }
@@ -188,7 +234,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         pageIndexInput.value = currentPage - 1;
         xInput.removeAttribute('max');
         yInput.removeAttribute('max');
-        describe('This PDF could not be previewed. It may be encrypted or unsupported. Choose another file, or use automatic placement or the numeric fields.');
+        describe('This PDF could not be previewed. It may be encrypted or unsupported. Choose another file or use automatic placement.');
         updateAppearance();
     }
 
@@ -239,7 +285,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         } finally {
             if (revision === generation) {
                 loadingPreview = false;
-                updateSubmitAvailability();
+                updateMarker();
             }
         }
     }
@@ -293,7 +339,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         finally {
             if (revision === selectionGeneration) {
                 selectingFile = false;
-                updateSubmitAvailability();
+                updateMarker();
             }
         }
     }
@@ -323,10 +369,9 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     });
     flow.addEventListener('change', () => {
         form.querySelectorAll('[data-flow]').forEach(node => { node.hidden = node.dataset.flow !== flow.value; });
+        updateFormatControls();
+        validateFiles();
         updateAppearance();
-        if (appearanceAvailable() && page && hasCustomPosition()) {
-            setPosition(Number(xInput.value), Number(yInput.value));
-        }
         updateSummary();
     });
     form.querySelectorAll('input[name="containerType"]').forEach(radio => radio.addEventListener('change', () => {
@@ -337,10 +382,7 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         loadPreview();
     }));
     hiddenVisual.addEventListener('change', updateAppearance);
-    [xInput, yInput].forEach(field => field.addEventListener('input', () => {
-        if (page && hasCustomPosition()) setPosition(Number(xInput.value), Number(yInput.value));
-        else updateMarker();
-    }));
+    [xInput, yInput].forEach(field => field.addEventListener('input', updateMarker));
     pageInput.addEventListener('change', async () => {
         if (documentPdf) { currentPage = pageIndex(pageInput.value, documentPdf.numPages) + 1; await renderPage(); }
         else pageIndexInput.value = Math.max(0, Math.trunc(Number(pageInput.value) || 1) - 1);
@@ -355,7 +397,9 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
             return;
         }
         if (!page) return;
-        setPosition(button.dataset.preset === 'left' ? page.view[0] + 24 : page.view[2] - 204, page.view[1] + 24);
+        const area = placementArea(page.view);
+        if (!fitsPlacement(area.left, area.bottom, area)) return;
+        setPosition(button.dataset.preset === 'left' ? area.left : area.right - signatureWidth, area.bottom);
     }));
 
     function pointFromEvent(event) {
@@ -366,7 +410,12 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         if (!page || !appearanceAvailable() || hiddenVisual.checked || event.button !== 0) return;
         const point = pointFromEvent(event);
         const dragging = marker.contains(event.target) && hasCustomPosition();
-        pointerOffset = dragging ? [point[0] - Number(xInput.value), point[1] - Number(yInput.value)] : [0, 0];
+        const [left, bottom, right, top] = page.view;
+        const anchor = [
+            clamp(Number(xInput.value), left, Math.max(left, right - signatureWidth)),
+            clamp(Number(yInput.value), bottom, Math.max(bottom, top - signatureHeight)),
+        ];
+        pointerOffset = dragging ? [point[0] - anchor[0], point[1] - anchor[1]] : [0, 0];
         paper.setPointerCapture(event.pointerId);
         setPosition(point[0] - pointerOffset[0], point[1] - pointerOffset[1]);
         marker.focus({ preventScroll: true });
@@ -396,9 +445,8 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
         if (submitting || selectingFile || loadingPreview || loadingPage) { event.preventDefault(); return; }
         const problem = validateFiles({ requireFiles: true });
         if (problem) { event.preventDefault(); input.focus(); return; }
-        if (appearanceAvailable() && !hiddenVisual.checked && ((xInput.value === '') !== (yInput.value === ''))) {
-            event.preventDefault(); showProblem('Enter both X and Y coordinates, or clear both for automatic placement.'); (xInput.value === '' ? xInput : yInput).focus(); return;
-        }
+        updateMarker();
+        if (placementProblem) { event.preventDefault(); xInput.focus(); return; }
         ++sampleGeneration;
         submitting = true;
         el('start-signing').disabled = true;

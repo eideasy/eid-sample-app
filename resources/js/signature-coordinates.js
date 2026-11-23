@@ -3,17 +3,26 @@ function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
 
-function fitPlacement(x, y, bounds, width = 180, height = 60) {
-    const left = Math.ceil(Math.max(0, bounds[0]));
-    const bottom = Math.ceil(Math.max(0, bounds[1]));
-    const w = Math.max(0, Math.min(width, bounds[2] - left));
-    const h = Math.max(0, Math.min(height, bounds[3] - bottom));
+// Reserve room for the generated signature, whose size varies with the signer and provider.
+const signatureWidth = 180;
+const signatureHeight = 72;
+const pageInset = 12;
+
+function placementArea([left, bottom, right, top]) {
+    // DSS converts Y using the page height. On an offset page that can give a
+    // different upper limit from the absolute PDF coordinate shown in the viewer.
     return {
-        x: clamp(Math.round(x), left, Math.floor(bounds[2] - w)),
-        y: clamp(Math.round(y), bottom, Math.floor(bounds[3] - h)),
-        width: w,
-        height: h,
+        left: Math.ceil(Math.max(0, left) + pageInset),
+        bottom: Math.ceil(Math.max(0, bottom) + pageInset),
+        right: Math.floor(right - pageInset),
+        top: Math.floor(Math.min(top, top - bottom) - pageInset),
     };
+}
+
+function fitsPlacement(x, y, area) {
+    return Number.isInteger(x) && Number.isInteger(y)
+        && x >= area.left && x + signatureWidth <= area.right
+        && y >= area.bottom && y + signatureHeight <= area.top;
 }
 
 function pageIndex(displayPage, pageCount) {
@@ -39,4 +48,4 @@ function documentFingerprint(file, cryptoApi = globalThis.crypto) {
         .catch(() => '');
 }
 
-module.exports = { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint };
+module.exports = { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pageIndex, fileProblem, documentFingerprint };

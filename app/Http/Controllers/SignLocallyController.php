@@ -10,12 +10,14 @@ use EidEasy\Signatures\Asice;
 use EidEasy\Signatures\Pades;
 use EidEasy\Signatures\SignatureParameters;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 class SignLocallyController extends Controller
 {
@@ -42,10 +44,23 @@ class SignLocallyController extends Controller
 
     public function downloadUnSignedFile(Request $request)
     {
-        $fileName = $request->input('filename');
-        $docId    = $request->input('doc_id');
+        $query = $request->query();
+        $fileName = $query['filename'] ?? null;
+        $docId = $query['doc_id'] ?? null;
+        abort_unless(is_string($fileName) && is_string($docId) && preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $docId), 404);
 
-        return Storage::download("/unsigned/$docId/$fileName");
+        $fileId = Cache::get("file_id-$docId");
+        $metadata = Cache::get("prepared-files-$fileId", []);
+        abort_unless($fileId && in_array($fileName, array_column($metadata, 'fileName'), true), 404);
+
+        $path = "/unsigned/$fileId/$fileName";
+        abort_unless(Storage::exists($path), 404);
+
+        return Storage::download($path, null, [
+            'Content-Type' => 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store',
+        ]);
     }
 
     public function startSignCustomFile(SigningPlaygroundRequest $request)
@@ -72,6 +87,9 @@ class SignLocallyController extends Controller
         foreach ($request->file('unsigned_file') as $fileInfo) {
             $fileContent = file_get_contents($fileInfo->path());
             $fileName    = $fileInfo->getClientOriginalName();
+            if (in_array($fileName, ['', '.', '..'], true) || preg_match('/[\x00-\x1f\x7f]/', $fileName)) {
+                return $this->preparationFailed($request, 'One of the files has an invalid name. Rename it and try again.');
+            }
             $mimeType    = $containerType === 'enveloped-xades' ? 'application/xml' : $fileInfo->getMimeType();
 
             $sourceFiles[] = [
@@ -93,13 +111,15 @@ class SignLocallyController extends Controller
         $additionalPrepareParams = [];
         if ($signType === "digest" && $containerType === "pdf") {
             $signatureContainer = 'cades';
-            $padesResponse      = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
-            if (!isset($padesResponse['digest'])) {
-                Log::error("Pades preparation failed", $padesResponse);
-                return response("Pades preparation failed");
+            try {
+                $padesResponse = $this->pades->getPadesDigest($sourceFiles[0]['fileContent']);
+            } catch (GuzzleException | \TypeError) {
+                $padesResponse = [];
+            }
+            if (!isset($padesResponse['digest'], $padesResponse['signatureTime'])) {
+                return $this->preparationFailed($request, 'The PDF digest helper could not prepare this file. Try a different PDF or another signing flow.');
             }
             $metaData[0]['fileContent'] = $padesResponse['digest']; // Modified PDF digest will be signed.
-            $sourceFilesCache           = $sourceFiles;
             Cache::put("pades-signatureTime-$fileId", $padesResponse['signatureTime']);
         } elseif ($signType === "digest" && $containerType === "asice") {
             $signatureContainer = 'xades';
@@ -133,7 +153,7 @@ class SignLocallyController extends Controller
             'notification_state' => [
                 'time' => now()->toIso8601String()
             ],
-            'show_visual'        => !$request->boolean('hide_pdf_visual'),
+            'show_visual'        => $signType !== 'digest' && $containerType === 'pdf' && !$request->boolean('hide_pdf_visual'),
             'return_available_methods' => true,
         ] + $additionalPrepareParams;
 
@@ -151,7 +171,7 @@ class SignLocallyController extends Controller
             ];
         }
 
-        if ($containerType === 'pdf' && !$request->boolean('hide_pdf_visual')) {
+        if ($prepareParams['show_visual']) {
             $coordinates = [];
             foreach (['pdf_x' => 'x', 'pdf_y' => 'y', 'pdf_page' => 'page'] as $field => $coordinate) {
                 if (isset($validated[$field])) {
@@ -172,34 +192,40 @@ class SignLocallyController extends Controller
             ];
         }
 
-        $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
-        if (isset($data['status']) && $data['status'] !== "OK") {
-            info('Prepare status not ok', ['response' => $data]);
-            if (!empty($data['message'])) {
-                $message = $data['message'];
-                if (isset($data['errors']['files'][0])) {
-                    $message .= ' ' . $data['errors']['files'][0];
-                }
-                session()->flash('message', $message);
-                session()->flash('alert-class', 'alert-danger');
-
-                return redirect()->back()->withInput($request->except(['unsigned_file', '_token']));
-            }
+        try {
+            $data = $this->eidEasyApi->prepareFiles($sourceFiles, $prepareParams);
+        } catch (GuzzleException | \TypeError) {
+            $data = [];
         }
-        $docId = $data['doc_id'];
+
+        $docId = $data['doc_id'] ?? null;
+        if (($data['status'] ?? 'OK') !== 'OK' || !is_string($docId) || !preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $docId)) {
+            return $this->preparationFailed($request, 'The signing API could not prepare these files. Check the selected format, choose your files again and retry.');
+        }
 
         // We need to use this later to assemble or get the signed file.
         Cache::put("doc_id-$fileId", $docId);
         Cache::put("file_id-$docId", $fileId);
         Cache::put("signType-$fileId", $signType);
         Cache::put("containerType-$fileId", $containerType);
-        Cache::put("available_methods-$docId", $data['available_methods']);
+        $availableMethods = $data['available_methods'] ?? [];
+        Cache::put("available_methods-$docId", is_array($availableMethods)
+            ? array_values(array_filter($availableMethods, 'is_string'))
+            : []);
 
         info("File prepared for signing file_id=$fileId, doc_id=$docId");
 
         $clientId = config('eideasy.client_id');
         if ($signType === "external") {
-            return redirect()->to(config('eideasy.api_url') . "/sign_contract_external?client_id=$clientId&doc_id=$docId");
+            $baseUrl = rtrim(config('eideasy.api_url'), '/');
+            $signingPage = $data['signing_page_url'] ?? null;
+            if (is_string($signingPage) && str_starts_with($signingPage, $baseUrl . '/sign_contract_external?')) {
+                return redirect()->away($signingPage);
+            }
+
+            return redirect()->away($baseUrl . '/sign_contract_external?' . http_build_query([
+                'client_id' => $clientId, 'doc_id' => $docId,
+            ]));
         } elseif ($signType === 'multisign') {
             $response = $this->eidEasyApi->createSigningQueue($docId, ['has_management_page' => true]);
             Cache::put("signing_queue_id_$fileId", $response['id']);
@@ -207,8 +233,14 @@ class SignLocallyController extends Controller
 
             return redirect()->to($response["management_page_url"]);
         } elseif ($signType === "eseal") {
-            $esealResponse = $this->eidEasyApi->createEseal($docId);
-            info("Eseal create response:", $esealResponse);
+            try {
+                $esealResponse = $this->eidEasyApi->createEseal($docId);
+            } catch (GuzzleException | \TypeError) {
+                $esealResponse = [];
+            }
+            if (($esealResponse['status'] ?? null) !== 'OK') {
+                return $this->preparationFailed($request, 'The sandbox could not create the e-Seal. Try again or choose another signing flow.');
+            }
             Cache::put("issandbox-$fileId", true);
             return redirect()->to(url('/show-download-signed-file') . "?file_id=$fileId");
         } else {
@@ -217,13 +249,25 @@ class SignLocallyController extends Controller
         }
     }
 
+    private function preparationFailed(Request $request, string $message)
+    {
+        Log::warning('Demo signing preparation failed', ['flow' => $request->input('signType')]);
+
+        return redirect('/sign-custom-file')
+            ->withInput($request->except(['unsigned_file', '_token']))
+            ->with('alert-class', 'alert-danger')
+            ->with('message', $message);
+    }
+
     public function downloadSignedFile(Request $request)
     {
         info("Start downloading signed file");
 
-        $fileId = $request->input("file_id");
+        $fileId = $request->query()['file_id'] ?? null;
+        abort_unless(is_string($fileId) && preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $fileId), 404);
 
-        $docId         = Cache::get("doc_id-$fileId");
+        $docId = Cache::get("doc_id-$fileId") ?? $request->session()->get("doc_id-$fileId");
+        abort_unless(is_string($docId), 404);
         $signType      = Cache::get("signType-$fileId");
         $containerType = Cache::get("containerType-$fileId");
         $isSandbox     = Cache::get("issandbox-$fileId");
@@ -247,17 +291,18 @@ class SignLocallyController extends Controller
             $this->eidEasyApi->setSecret(config('eideasy.eid_test_secret'));
         }
 
-        $data = $this->eidEasyApi->downloadSignedFile($docId);
-        $fileName = $data['filename'];
-
+        try {
+            $data = $this->eidEasyApi->downloadSignedFile($docId);
+        } catch (GuzzleException | \TypeError) {
+            $data = [];
+        }
         if (empty($data['signed_files'])) {
-            Log::error('Signed files are missing', [
-                'doc_id' => $docId,
-                'client_id' => config('eideasy.eid_test_client_id'),
-            ]);
-            throw new \Exception('Signed files are missing');
+            return redirect(url()->query('/show-download-signed-file', ['file_id' => $fileId]))
+                ->with('alert-class', 'alert-warning')
+                ->with('message', 'The signed files are unavailable. Finish signing and try downloading again.');
         }
 
+        $fileName = $data['filename'];
         $signedFilesContent = [];
         foreach ($data['signed_files'] as $file) {
             $signedFilesContent[] = base64_decode($file['contents']);
@@ -300,9 +345,17 @@ class SignLocallyController extends Controller
 
         info("Signed file downloaded");
 
+        $fileName = str_replace(['/', '\\'], '_', $fileName);
+        $contentType = match ($containerType) {
+            'pdf' => 'application/pdf',
+            'enveloped-xades' => 'application/xml',
+            default => 'application/vnd.etsi.asic-e+zip',
+        };
         $headers = [
-            'Content-type'        => 'application/vnd.etsi.asic-e+zip',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Type' => $contentType,
+            'Content-Disposition' => HeaderUtils::makeDisposition('attachment', $fileName, 'signed-file'),
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'no-store',
         ];
 
         return Response::make($signedFileContents, 200, $headers);

@@ -15,6 +15,10 @@ body {
   color: #2a3636;
 }
 
+[v-cloak] {
+  display: none;
+}
+
 .main {
   padding: 40px 0;
   min-height: calc(100vh - 58px - 93px);

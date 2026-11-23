@@ -9,11 +9,14 @@ const coordinates = require('../../resources/js/signature-coordinates');
 function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => new Blob([contents])) {
     const nodes = new Map();
     function node() {
-        return { value: '', files: [], style: {}, dataset: {}, firstChild: {}, checked: false,
-            classList: { toggle() {}, add() {}, remove() {} }, handlers: {},
+        const classes = new Set();
+        return { value: '', files: [], style: {}, dataset: {}, firstChild: {}, checked: false, classes,
+            classList: { toggle(name, force) { if (force) classes.add(name); else classes.delete(name); }, add() {}, remove() {} }, handlers: {},
             addEventListener(name, handler) { this.handlers[name] = handler; },
             setAttribute() {}, removeAttribute() {}, replaceChildren() {}, append() {}, focus() {},
             getContext() { return {}; },
+            getBoundingClientRect() { return {left: 0, top: 0, width: 595, height: 842}; },
+            setPointerCapture() {}, contains() { return false; },
         };
     }
     const get = id => { if (!nodes.has(id)) nodes.set(id, node()); return nodes.get(id); };
@@ -46,7 +49,7 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
         const match = selector.match(/\[value="([^"]+)"\]/);
         return match ? optionFor(match[1]) : get(selector);
     };
-    get('signType').options = [{ text: 'Hosted signing' }];
+    get('signType').options = [{ text: 'eID Easy signing page' }];
     get('signType').selectedIndex = 0;
     get('pdf_x').value = '900'; get('pdf_y').value = '900';
     get('pdf_page').value = '9';
@@ -57,7 +60,7 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
         loadedPages.push(number);
         await beforePageLoad(number);
         return { view: [0, 0, 595, 842], getViewport: () => ({ width: 595, height: 842,
-            convertToViewportRectangle: rectangle => rectangle }),
+            convertToViewportRectangle: rectangle => rectangle, convertToPdfPoint: (x, y) => [x, y] }),
             render: () => ({ promise: Promise.resolve(), cancel() {} }) };
     } };
     const source = fs.readFileSync(require.resolve('../../resources/js/signing-playground'), 'utf8')
@@ -91,12 +94,36 @@ test('same upload after validation restores and bounds-checks coordinates and pa
     app.get('signing-playground').handlers.submit({ preventDefault() { prevented = true; } });
     assert.equal(prevented, true);
     await selecting;
-    assert.equal(app.get('pdf_x').value, 415);
-    assert.equal(app.get('pdf_y').value, 782);
+    assert.equal(app.get('pdf_x').value, '900');
+    assert.equal(app.get('pdf_y').value, '900');
     assert.equal(app.get('pdf_page').value, 2);
     assert.equal(app.get('pdf_page_index').value, 1);
     assert.deepEqual(app.loadedPages, [2]);
+    assert.equal(app.get('start-signing').disabled, true);
+    assert.equal(app.get('signature-marker').classes.has('placement-invalid'), true);
+    app.get('automatic').handlers.click();
     assert.equal(app.get('start-signing').disabled, false);
+});
+
+test('dragging into a corner marks the placement red and blocks submission until moved back', async () => {
+    const original = Buffer.from('%PDF original document');
+    const app = fixture(original);
+    await app.select(original);
+    app.get('automatic').handlers.click();
+    const paper = app.get('pdf-page');
+    paper.handlers.pointerdown({ clientX: 50, clientY: 50, button: 0, preventDefault() {} });
+    paper.handlers.pointermove({ clientX: 3, clientY: 790 });
+    assert.equal(app.get('start-signing').disabled, true);
+    assert.equal(app.get('signature-marker').classes.has('placement-invalid'), true);
+    assert.match(app.get('placement-error').textContent, /dashed safe area/);
+    let prevented = false;
+    app.get('signing-playground').handlers.submit({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+
+    paper.handlers.pointermove({ clientX: 30, clientY: 120 });
+    assert.equal(app.get('start-signing').disabled, false);
+    assert.equal(app.get('signature-marker').classes.has('placement-invalid'), false);
+    assert.equal(app.get('placement-error').hidden, true);
 });
 
 test('different PDF with the same name resets restored placement', async () => {
@@ -152,6 +179,7 @@ test('submission waits for the new page and its placement bounds', async () => {
     const app = fixture(original, number => number === 2 ? pageReady : undefined);
     app.get('pdf_page').value = '1';
     await app.select(original);
+    app.get('automatic').handlers.click();
 
     const changing = app.get('next-page').handlers.click();
     assert.equal(app.get('start-signing').disabled, true);

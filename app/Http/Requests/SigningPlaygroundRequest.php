@@ -33,14 +33,15 @@ class SigningPlaygroundRequest extends FormRequest
     {
         $pdf = $this->input('containerType') === 'pdf';
         $xml = $this->input('containerType') === 'enveloped-xades';
-        $ignoreAppearance = !$pdf || $this->boolean('hide_pdf_visual');
+        $digest = $this->input('signType') === 'digest';
+        $ignoreAppearance = !$pdf || $digest || $this->boolean('hide_pdf_visual');
 
         return [
-            'redirect_uri' => ['nullable', 'url'],
+            'redirect_uri' => ['nullable', 'url:http,https', 'max:2048'],
             'unsigned_file' => array_filter(['required', 'array', 'min:1', $pdf ? 'max:1' : null]),
             'unsigned_file.*' => array_filter(['bail', 'required', 'file', $pdf ? 'mimes:pdf' : null, $xml ? $this->validateXml(...) : null]),
             'signType' => ['required', Rule::in(['local', 'external', 'digest', 'eseal', 'multisign'])],
-            'containerType' => ['required', Rule::in(['asice', 'pdf', 'enveloped-xades', 'asice-for-each-file'])],
+            'containerType' => ['required', Rule::in($digest ? ['asice', 'pdf'] : ['asice', 'pdf', 'enveloped-xades', 'asice-for-each-file'])],
             'pdf_x' => [Rule::excludeIf($ignoreAppearance), 'nullable', 'required_with:pdf_y', 'integer', 'min:0'],
             'pdf_y' => [Rule::excludeIf($ignoreAppearance), 'nullable', 'required_with:pdf_x', 'integer', 'min:0'],
             'pdf_page' => [Rule::excludeIf($ignoreAppearance), 'nullable', 'integer', 'min:0'],
@@ -68,6 +69,7 @@ class SigningPlaygroundRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'containerType.in' => 'Choose a format supported by your signing flow. Digest signing supports PDF and ASiC-E.',
             'unsigned_file.required' => 'Choose at least one file to sign.',
             'unsigned_file.max' => 'PDF signing accepts one PDF. Use an ASiC-E format to sign multiple files.',
             'unsigned_file.*.mimes' => 'PDF signing requires a PDF document.',

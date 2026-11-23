@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'HomeController@getWelcome');
+Route::get('/oauth/start', [HomeController::class, 'startOAuth'])->name('oauth.start');
 
 Route::get('/sign-locally-sample', 'SampleViewController@signLocallySample');
 

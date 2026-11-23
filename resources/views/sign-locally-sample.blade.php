@@ -1,62 +1,62 @@
 @extends('template')
+@section('title', 'Embedded signing widget')
 
 @section('content')
-    <div class="demo-heading"><span class="eyebrow">API SIGNING FLOW</span><h1>Your website. Your signing journey.</h1><p>Preview your documents and complete the signature using the signing widget. ID-card signing requires HTTPS, a card reader and installed ID-card software.</p></div>
+    <div class="demo-heading">
+        <h1>Embedded signing widget</h1>
+        <p>Review your files and choose a signing method. ID-card signing requires HTTPS, a card reader and ID-card software.</p>
+    </div>
     <div class="row">
-        <div class="col">
-            @if(count($files)===0)
-                <p>
-                    No files prepared for signing
-                </p>
+        <section class="col-md-7 mb-4" aria-labelledby="document-preview">
+            <h2 id="document-preview">Documents</h2>
+            @foreach($files as $file)
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <a href="{{ url()->query('/download-unsigned-file', ['doc_id' => $doc_id, 'filename' => $file['fileName']]) }}">
+                            Download {{ $file['fileName'] }}
+                        </a>
+                        @if($file['pdfPreview'] !== null)
+                            <object type="application/pdf" data="data:application/pdf;base64,{{ $file['pdfPreview'] }}"
+                                    class="w-100 mt-2" height="550" aria-label="PDF preview">
+                                <p>Download the PDF to preview it.</p>
+                            </object>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </section>
+        <section class="col-md-5" aria-labelledby="signing-method">
+            <h2 id="signing-method">Signing method</h2>
+            @if($available_methods === [])
+                <p class="alert alert-warning">No signing methods are available for this document.</p>
             @else
-                @foreach($files as $key => $file)
-                    <div>
-                        <div class="card">
-                            <div class="card-body">
-                                <h3 class="card-title">Document Preview</h3>
-                                <div>
-                                    Original file: <a
-                                        href="/download-unsigned-file?doc_id={{$doc_id}}&filename={{$file['fileName']}}">{{$file['fileName']}}</a>
-                                </div>
-                                <object type="{{$file['mimeType']}}"
-                                        data="data:{{$file['mimeType']}};base64,{{$file['fileContent']}}" class="w-100"
-                                        height="550">
-                                    <p>This type of file preview cannot be shown</p>
-                                </object>
-                            </div>
-
-                        </div>
+                <div id="app">
+                    <div v-if="!isSuccess">
+                        <widget
+                            doc-id="{{ $doc_id }}"
+                            client-id="{{ $client_id }}"
+                            base-url="{{ $base_url }}"
+                            :available-methods="{{ Illuminate\Support\Js::from($available_methods) }}"
+                            @success="handleSuccess"
+                            @fail="handleFail"
+                        ></widget>
                     </div>
-                @endforeach
+                    <div v-else v-cloak>
+                        <p class="alert alert-success" role="status">Signing complete.</p>
+                        <a class="demo-button" href="{{ url()->query('/download-signed-file', ['file_id' => $file_id]) }}">
+                            Download signed file
+                        </a>
+                    </div>
+                </div>
+                <noscript><p class="alert alert-info">Enable JavaScript to use the signing widget.</p></noscript>
             @endif
-        </div>
-        <div class="col col-lg-4">
-            <div id="app">
-                <div v-if="!isSuccess">
-                    <widget
-                        :doc-id="'{{ $doc_id }}'"
-                        :client-id="'{{ $client_id }}'"
-                        :base-url="'{{ $base_url }}'"
-                        :available-methods='@json($available_methods)'
-                        @success="handleSuccess"
-                        @fail="handleFail"
-                    ></widget>
-                </div>
-                <div v-else>
-                    <div class="alert alert-success">
-                        File was successfully signed!
-                    </div>
-                    You can download your Digitally signed file here:
-                    <a href="{{url("/download-signed-file?file_id=$file_id")}}">
-                        {{url("/download-signed-file?file_id=$file_id")}}
-                    </a>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
 @endsection
 
 @section('scripts')
-    <script src="/js/hwcrypto.js"></script>
-    <script type="text/javascript" src="{{mix('/js/app.js')}}"></script>
+    @if($available_methods !== [])
+        <script src="{{ asset('/js/hwcrypto.js') }}" defer></script>
+        <script src="{{ mix('/js/app.js') }}" defer></script>
+    @endif
 @endsection

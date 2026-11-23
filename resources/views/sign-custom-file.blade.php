@@ -3,10 +3,10 @@
 @section('content')
     @php
         $flows = [
-            'external' => ['Hosted signing', 'eID Easy handles the signing journey. Upload your files, redirect the signer and download the result.'],
-            'local' => ['API flow', 'Use the signing widget on your website and keep control of the customer experience.'],
-            'digest' => ['Digest signing', 'Send document hashes for signing. ASiC-E is assembled locally; PDF signing uses the configured PAdES helper.'],
-            'eseal' => ['Automatic e-Seal', 'Seal documents with a configured signing certificate. This demo uses sandbox credentials.'],
+            'external' => ['eID Easy signing page', 'Your backend prepares the files through the API. Your application redirects the signer to the eID Easy signing page and retrieves the signed files through the API.'],
+            'local' => ['Embedded signing widget', 'Your backend prepares the files through the API. The widget lets the signer choose a provider within your application. Some providers open a separate page to complete signing.'],
+            'digest' => ['Digest signing', 'Send digests to the signing API. Choose PDF or ASiC-E. The demo assembles ASiC-E containers locally and uses a PAdES helper for PDFs.'],
+            'eseal' => ['Automatic e-Seal', 'Your backend prepares the files and requests a seal through the API using a configured sandbox certificate.'],
             'multisign' => ['Multiple signers', 'Continue to a hosted management page to enter the names and email addresses of your signers.'],
         ];
         $formats = [
@@ -16,16 +16,16 @@
             'enveloped-xades' => ['XML', 'Sign an XML file with an enveloped XAdES signature.'],
         ];
     @endphp
-    <div class="demo-heading signing-heading"><span class="eyebrow">SIGNING PLAYGROUND</span><h1>Make it your signature.</h1><p>Choose your file, explore the signing options and put the signature where you want it.</p></div>
+    <div class="demo-heading signing-heading"><h1>Signing playground</h1><p>Try a signing API integration with a sample PDF or your own test files.</p></div>
     @include('form-feedback')
-    <noscript><p class="alert alert-info">You can sign files with this form. Enable JavaScript for PDF preview, visual placement and live file checks.</p></noscript>
+    <noscript><p class="alert alert-info">Enable JavaScript to preview the PDF and check manual placement. Leave X and Y empty to use automatic placement.</p></noscript>
     <form method="POST" enctype="multipart/form-data" class="signing-form" id="signing-playground">
         @csrf
         <input type="hidden" name="placement_document_fingerprint" id="placement-document-fingerprint" value="{{ old('placement_document_fingerprint') }}">
         <div class="signing-workspace">
             <section class="setup-panel" aria-label="Signing configuration">
                 <div class="setup-section">
-                    <span class="eyebrow">01 / YOUR DOCUMENTS</span><h2>Start with a file.</h2>
+                    <h2>Documents</h2>
                     <div class="file-drop" id="file-drop">
                         <i data-lucide="upload" aria-hidden="true"></i>
                         <label for="unsigned_file">Choose files <span>or drop them here</span></label>
@@ -41,16 +41,15 @@
                     <p class="field-hint">Preview stays in your browser. Continuing uploads the file for signing.</p>
                 </div>
                 <div class="setup-section">
-                    <span class="eyebrow">02 / YOUR INTEGRATION</span><h2>Make it your setup.</h2>
+                    <h2>Signing setup</h2>
                     <label for="signType">Signing flow</label>
                     <div class="signing-select">
-                    <select name="signType" id="signType" data-event-name-onchange="signing_demo_signature_creation_changed" aria-describedby="flow-hint">
+                    <select name="signType" id="signType" data-event-name-onchange="signing_demo_signature_creation_changed">
                         @foreach($flows as $value => $flow)<option value="{{ $value }}" @selected(old('signType', 'external') === $value)>{{ $flow[0] }}</option>@endforeach
                     </select>
                     <i data-lucide="chevron-down" aria-hidden="true"></i>
                     </div>
                     @foreach($flows as $value => $flow)<p class="field-hint flow-description" data-flow="{{ $value }}" @if(old('signType', 'external') !== $value) hidden @endif>{{ $flow[1] }}</p>@endforeach
-                    <p id="flow-hint" class="sr-only">Choose a hosted, embedded API, digest, e-Seal or multiple-signer flow.</p>
                     <fieldset class="format-fieldset"><legend>Output format</legend><div class="format-options">
                         @foreach($formats as $value => $format)
                             <label><input type="radio" name="containerType" value="{{ $value }}" @checked(old('containerType', 'pdf') === $value) data-event-name="signing_demo_container_type_changed"><span>{{ $format[0] }}</span></label>
@@ -70,27 +69,27 @@
                 </div>
             </section>
             <section class="preview-panel" aria-label="Document preview and signature appearance">
-                <div class="preview-toolbar"><span class="eyebrow">03 / SIGNATURE APPEARANCE</span><div class="page-navigation" id="page-navigation" hidden><button type="button" class="icon-button" id="previous-page" aria-label="Previous page"><i data-lucide="chevron-left" aria-hidden="true"></i></button><span id="page-status" aria-live="polite">Page 1 of 1</span><button type="button" class="icon-button" id="next-page" aria-label="Next page"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div>
+                <div class="preview-toolbar"><h2>Signature placement</h2><div class="page-navigation" id="page-navigation" hidden><button type="button" class="icon-button" id="previous-page" aria-label="Previous page"><i data-lucide="chevron-left" aria-hidden="true"></i></button><span id="page-status" aria-live="polite">Page 1 of 1</span><button type="button" class="icon-button" id="next-page" aria-label="Next page"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div>
                 <div class="preview-stage" id="preview-stage">
-                    <div class="preview-empty" id="preview-empty"><span class="empty-icon"><i data-lucide="file-scan" aria-hidden="true"></i></span><h2>A place for your signature.</h2><p id="preview-message" role="status">Choose a PDF to preview it and position its visual signature. Other files can be signed in an ASiC-E container.</p></div>
-                    <div class="pdf-page" id="pdf-page" hidden><canvas id="pdf-canvas" aria-label="Uploaded PDF page preview"></canvas><button type="button" id="signature-marker" class="signature-marker" aria-label="Signature placement. Use arrow keys to move; hold Shift for larger steps." aria-describedby="placement-hint" hidden><i data-lucide="pen-line" aria-hidden="true"></i><span>Signature placement</span></button></div>
+                    <div class="preview-empty" id="preview-empty"><span class="empty-icon"><i data-lucide="file-scan" aria-hidden="true"></i></span><p id="preview-message" role="status">Choose a PDF to preview it and position its visual signature. Other files can be signed in an ASiC-E container.</p></div>
+                    <div class="pdf-page" id="pdf-page" hidden><canvas id="pdf-canvas" aria-label="Uploaded PDF page preview"></canvas><div id="signature-safe-area" aria-hidden="true" hidden></div><button type="button" id="signature-marker" class="signature-marker" aria-label="Signature placement. Use arrow keys to move; hold Shift for larger steps." aria-describedby="placement-hint placement-error" hidden><i data-lucide="pen-line" aria-hidden="true"></i><span>Signature placement</span></button></div>
                 </div>
                 <fieldset class="appearance-controls" id="appearance-controls"><legend class="sr-only">PDF signature appearance</legend>
                     <label class="visual-toggle" for="hide_pdf_visual"><input type="checkbox" name="hide_pdf_visual" id="hide_pdf_visual" @checked(old('hide_pdf_visual')) data-event-name="signing_demo_hide_visual_signature_clicked"><span>Hide visual signature</span></label>
                     <div id="placement-fields">
-                        <div class="coordinate-fields"><div><label for="pdf_x">X (pt)</label><input name="pdf_x" id="pdf_x" type="number" min="0" step="1" value="{{ old('pdf_x') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_x_coordinate_changed"></div><div><label for="pdf_y">Y (pt)</label><input name="pdf_y" id="pdf_y" type="number" min="0" step="1" value="{{ old('pdf_y') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_y_coordinate_changed"></div><div><label for="pdf_page">Page</label><input name="pdf_page_display" id="pdf_page" type="number" min="1" step="1" value="{{ old('pdf_page_display', old('pdf_page') !== null ? (int) old('pdf_page') + 1 : 1) }}"><input type="hidden" name="pdf_page" id="pdf_page_index" value="{{ old('pdf_page') }}"></div></div>
+                        <div class="coordinate-fields"><div><label for="pdf_x">X (pt)</label><input name="pdf_x" id="pdf_x" aria-describedby="placement-hint placement-error" type="number" min="0" step="1" value="{{ old('pdf_x') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_x_coordinate_changed"></div><div><label for="pdf_y">Y (pt)</label><input name="pdf_y" id="pdf_y" aria-describedby="placement-hint placement-error" type="number" min="0" step="1" value="{{ old('pdf_y') }}" placeholder="Auto" data-event-name-onchange="signing_demo_pdf_y_coordinate_changed"></div><div><label for="pdf_page">Page</label><input name="pdf_page_display" id="pdf_page" type="number" min="1" step="1" value="{{ old('pdf_page_display', old('pdf_page') !== null ? (int) old('pdf_page') + 1 : 1) }}"><input type="hidden" name="pdf_page" id="pdf_page_index" value="{{ old('pdf_page') }}"></div></div>
                         <div class="placement-presets"><span>Place at</span><button type="button" data-preset="left">Bottom left</button><button type="button" data-preset="right">Bottom right</button><button type="button" data-preset="auto">Automatic</button></div>
-                        <p class="field-hint" id="placement-hint">Choose a PDF, then click or drag to position. X and Y use PDF points from the bottom-left corner. Leave coordinates empty for automatic placement.</p>
-                        <p class="field-hint" id="preview-note">The placement guide is approximate. The signing service determines the final appearance and may move it to avoid existing signatures.</p>
+                        <p class="field-hint" id="placement-hint">Place the entire signature inside the dashed safe area. Use the preview or enter X and Y in PDF points from the bottom-left corner. Choose Automatic to clear the coordinates.</p>
+                        <p class="field-error" id="placement-error" role="alert" hidden></p>
+                        <p class="field-hint" id="preview-note">The signing service may adjust the final placement to avoid overlapping existing signatures.</p>
                     </div>
                 </fieldset>
                 <p class="non-pdf-note" id="digest-appearance-note" hidden>The PDF digest helper controls the signature appearance. Custom placement and visibility are unavailable in this flow.</p>
                 <p class="non-pdf-note" id="non-pdf-note" hidden>Visual placement applies to PDF signatures. Your chosen format signs the file contents without a PDF appearance.</p>
             </section>
         </div>
-        <div class="signing-action-bar"><div><span class="eyebrow">READY WHEN YOU ARE</span><p id="signing-summary" aria-live="polite">Choose a file to get started.</p></div><button type="submit" class="demo-button" id="start-signing" data-event-name="signing_demo_sign_now_clicked">Continue to signing <i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
-        <div class="integration-notes"><details><summary><i data-lucide="code-xml" aria-hidden="true"></i>Integration notes</summary><p class="field-hint">Hosted signing sends the documents to eID Easy. API flow embeds the signing widget in this app. Digest signing sends hashes to eID Easy; PDF preparation and assembly use the configured PAdES helper. Multiple signers are configured on the next page.</p><a href="https://docs.eideasy.com/" target="_blank" rel="noopener">Read the API documentation</a></details></div>
-        <p class="demo-footnote">This is a live integration demo. Use test documents. Continuing may open a signing provider or create a sandbox e-Seal, depending on your selected flow.</p>
+        <div class="signing-action-bar"><div><p id="signing-summary" aria-live="polite">Choose a file to get started.</p></div><button type="submit" class="demo-button" id="start-signing" data-event-name="signing_demo_sign_now_clicked">Continue to signing <i data-lucide="arrow-right" aria-hidden="true"></i></button></div>
+        @include('signing-api-examples')
     </form>
 @endsection
 @section('scripts')<script src="{{ mix('/js/signing-playground.js') }}" defer></script>@endsection

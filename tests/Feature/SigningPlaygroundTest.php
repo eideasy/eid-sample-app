@@ -8,6 +8,8 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -143,6 +145,103 @@ class SigningPlaygroundTest extends TestCase
         $this->get('/sign-custom-file')->assertOk()
             ->assertSee('id="placement-document-fingerprint" value="'.$fingerprint.'"', false);
         $this->assertCount(0, $this->requests);
+    }
+
+    public function testUploadedNonPdfFilesAreOfferedOnlyAsAttachments(): void
+    {
+        $this->post('/sign-custom-file', $this->payload([
+            'signType' => 'local',
+            'containerType' => 'asice',
+            'unsigned_file' => [UploadedFile::fake()->createWithContent('test & notes.html', '<p>Test file</p>')],
+        ]))->assertRedirect('/sign-locally-sample?doc_id=demo-document');
+
+        $this->get('/sign-locally-sample?doc_id=demo-document')->assertOk()
+            ->assertSee('test &amp; notes.html', false)->assertDontSee('<object', false);
+        $this->get('/download-unsigned-file?doc_id=demo-document&filename=test%20%26%20notes.html')
+            ->assertOk()->assertHeader('Content-Type', 'application/octet-stream')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        $this->get('/download-unsigned-file?doc_id=demo-document&filename=other.html')->assertNotFound();
+        $this->get('/sign-locally-sample?doc_id%5B%5D=demo-document')->assertRedirect('/sign-custom-file');
+    }
+
+    public function testEmbeddedSigningRendersMethodsAndAValidPdfPreview(): void
+    {
+        $this->post('/sign-custom-file', $this->payload([
+            'signType' => 'local',
+            'unsigned_file' => [UploadedFile::fake()->createWithContent(
+                'sample.pdf',
+                file_get_contents(public_path('samples/signing-demo.pdf')),
+            )],
+        ]))->assertRedirect('/sign-locally-sample?doc_id=demo-document');
+        Cache::put('available_methods-demo-document', ['smart-id-signature']);
+        $this->get('/sign-locally-sample?doc_id=demo-document')->assertOk()
+            ->assertSee('data:application/pdf;base64,', false)
+            ->assertSee('doc-id="demo-document"', false)
+            ->assertSee('smart-id-signature');
+    }
+
+    public function testOAuthCallbackRequiresMatchingStateAndUsesItOnce(): void
+    {
+        Http::fake([
+            'https://signing.example/oauth/access_token' => Http::response(['access_token' => 'test-token']),
+            'https://signing.example/api/v2/user_data*' => Http::response(['firstname' => 'Demo']),
+        ]);
+
+        $response = $this->get('/oauth/start')->assertRedirect();
+        parse_str(parse_url($response->headers->get('Location'), PHP_URL_QUERY), $parameters);
+        $state = $parameters['state'];
+        $this->assertNotEmpty($state);
+
+        $this->get('/?code=test-code&state=unrelated')->assertOk()->assertSee('Start a new OAuth login');
+        $this->get('/?error=cancelled&error_description=untrusted-description')->assertOk()
+            ->assertDontSee('untrusted-description');
+        Http::assertNothingSent();
+
+        $callback = '/?' . http_build_query(['code' => 'test-code', 'state' => $state]);
+        $this->get($callback)->assertOk()->assertSee('OAuth login result')->assertSee('Demo');
+        $this->get($callback)->assertOk()->assertSee('Start a new OAuth login');
+        Http::assertSentCount(2);
+    }
+
+    public function testUnsupportedDigestFormatStopsBeforePreparation(): void
+    {
+        $this->postJson('/sign-custom-file', $this->payload([
+            'signType' => 'digest',
+            'containerType' => 'asice-for-each-file',
+        ]))->assertUnprocessable()->assertJsonValidationErrors('containerType');
+        $this->assertCount(0, $this->requests);
+    }
+
+    public function testMissingDocumentIdShowsAnActionableError(): void
+    {
+        $this->app->instance(Client::class, new Client(['handler' => new MockHandler([
+            new Response(200, [], '{"status":"OK"}'),
+        ])]));
+
+        $this->post('/sign-custom-file', $this->payload())
+            ->assertRedirect('/sign-custom-file')->assertSessionHas('message');
+        $this->get('/sign-custom-file')->assertOk()->assertSee('choose your files again and retry');
+    }
+
+    public function testSandboxSealFailureDoesNotOfferADownload(): void
+    {
+        config([
+            'eideasy.eid_test_api' => 'https://sandbox.example',
+            'eideasy.eid_test_client_id' => 'sandbox-client',
+            'eideasy.eid_test_secret' => 'sandbox-secret',
+        ]);
+        $handler = HandlerStack::create(new MockHandler([
+            new Response(200, [], '{"status":"OK","doc_id":"sandbox-document"}'),
+            new Response(400, [], '{"status":"error"}'),
+        ]));
+        $handler->push(Middleware::history($this->requests));
+        $this->app->instance(Client::class, new Client(['handler' => $handler]));
+
+        $this->post('/sign-custom-file', $this->payload(['signType' => 'eseal']))
+            ->assertRedirect('/sign-custom-file')->assertSessionHas('message');
+        $this->assertSame('https://sandbox.example/api/signatures/e-seal/create', (string) $this->requests[1]['request']->getUri());
+        $this->get('/sign-custom-file')->assertOk()->assertSee('The sandbox could not create the e-Seal.');
     }
 
 }
