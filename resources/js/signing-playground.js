@@ -348,7 +348,12 @@ const { clamp, fitPlacement, pageIndex, fileProblem, documentFingerprint } = req
     el('previous-page').addEventListener('click', async () => { currentPage = Math.max(1, currentPage - 1); await renderPage(); });
     el('next-page').addEventListener('click', async () => { currentPage = Math.min(documentPdf.numPages, currentPage + 1); await renderPage(); });
     form.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => {
-        if (button.dataset.preset === 'auto') { xInput.value = ''; yInput.value = ''; pageIndexInput.value = page ? currentPage - 1 : ''; pageInput.value = currentPage; updateMarker(); return; }
+        if (button.dataset.preset === 'auto') {
+            xInput.value = '';
+            yInput.value = '';
+            updateMarker();
+            return;
+        }
         if (!page) return;
         setPosition(button.dataset.preset === 'left' ? page.view[0] + 24 : page.view[2] - 204, page.view[1] + 24);
     }));

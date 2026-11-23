@@ -33,7 +33,13 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
     }
     const optionFor = value => options.find(option => option.value === value);
     get('unsigned_file').dispatchEvent = event => get('unsigned_file').handlers[event.type]();
-    form.querySelectorAll = selector => selector === 'input[name="containerType"]' ? options : [];
+    const automatic = get('automatic');
+    automatic.dataset.preset = 'auto';
+    form.querySelectorAll = selector => {
+        if (selector === 'input[name="containerType"]') return options;
+        if (selector === '[data-preset]') return [automatic];
+        return [];
+    };
     form.querySelector = selector => {
         if (selector.includes(':checked + span')) return { textContent: selectedFormat };
         if (selector.includes(':checked')) return optionFor(selectedFormat);
@@ -217,4 +223,16 @@ test('PDF digest signing keeps the preview and disables appearance controls', as
     assert.equal(app.get('appearance-controls').disabled, false);
     assert.equal(app.get('signature-marker').hidden, false);
     assert.equal(app.get('digest-appearance-note').hidden, true);
+});
+
+test('automatic placement preserves a manually selected page without a preview', async () => {
+    const app = fixture(Buffer.from('%PDF test'));
+    const page = app.get('pdf_page');
+    page.value = '3';
+    await page.handlers.change();
+    app.get('automatic').handlers.click();
+    assert.equal(app.get('pdf_x').value, '');
+    assert.equal(app.get('pdf_y').value, '');
+    assert.equal(page.value, '3');
+    assert.equal(app.get('pdf_page_index').value, 2);
 });

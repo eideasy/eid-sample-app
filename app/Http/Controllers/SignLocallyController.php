@@ -72,7 +72,7 @@ class SignLocallyController extends Controller
         foreach ($request->file('unsigned_file') as $fileInfo) {
             $fileContent = file_get_contents($fileInfo->path());
             $fileName    = $fileInfo->getClientOriginalName();
-            $mimeType    = $fileInfo->getMimeType();
+            $mimeType    = $containerType === 'enveloped-xades' ? 'application/xml' : $fileInfo->getMimeType();
 
             $sourceFiles[] = [
                 'fileName'    => $fileName,
@@ -115,11 +115,6 @@ class SignLocallyController extends Controller
         } elseif ($containerType === 'enveloped-xades') {
             $signatureContainer = 'xades';
             $additionalPrepareParams['signature_packaging'] = 'ENVELOPED';
-            foreach ($sourceFiles as $key => $value) {
-                if ($value['mimeType'] === 'text/xml') {
-                    $sourceFiles[$key]['mimeType'] = 'application/xml';
-                }
-            }
         }
 
         if ($signType === 'digest') {

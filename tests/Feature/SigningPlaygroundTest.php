@@ -104,6 +104,26 @@ class SigningPlaygroundTest extends TestCase
         $this->assertCount(0, $this->requests);
     }
 
+    public function testEnvelopedXadesAcceptsXmlWithoutADeclaration(): void
+    {
+        $this->post('/sign-custom-file', $this->payload([
+            'containerType' => 'enveloped-xades',
+            'unsigned_file' => [UploadedFile::fake()->createWithContent('invoice.xml', '<root><item>example</item></root>')],
+        ]))->assertRedirect();
+        $this->assertSame('application/xml', $this->prepared()['files'][0]['mimeType']);
+    }
+
+    public function testEnvelopedXadesRejectsMalformedXmlAndDoctypes(): void
+    {
+        foreach (['<root>', '<!DOCTYPE root><root/>'] as $xml) {
+            $this->postJson('/sign-custom-file', $this->payload([
+                'containerType' => 'enveloped-xades',
+                'unsigned_file' => [UploadedFile::fake()->createWithContent('invoice.xml', $xml)],
+            ]))->assertUnprocessable()->assertJsonValidationErrors('unsigned_file.0');
+        }
+        $this->assertCount(0, $this->requests);
+    }
+
     public function testValidationRetainsSettingsAndRendersAllExistingChoices(): void
     {
         $this->from('/sign-custom-file')->post('/sign-custom-file', ['signType' => 'digest', 'containerType' => 'asice', 'simple_firstname' => 'Demo'])->assertRedirect('/sign-custom-file')->assertSessionHasErrors('unsigned_file');

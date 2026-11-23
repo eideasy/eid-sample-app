@@ -26,7 +26,7 @@ function fileProblem(files, format) {
         if (files.length !== 1) return 'PDF signing accepts one file at a time.';
         if (files[0].type !== 'application/pdf' && !/\.pdf$/i.test(files[0].name)) return 'Choose a PDF for this format.';
     }
-    if (format === 'enveloped-xades' && files.some(file => !/\.xml$/i.test(file.name))) return 'The XML format requires XML files.';
+    if (format === 'enveloped-xades' && files.some(file => !['application/xml', 'text/xml'].includes(file.type) && !/\.xml$/i.test(file.name))) return 'The XML format requires XML files.';
     return '';
 }
 

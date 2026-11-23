@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use Closure;
+use DOMDocument;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 class SigningPlaygroundRequest extends FormRequest
@@ -35,7 +38,7 @@ class SigningPlaygroundRequest extends FormRequest
         return [
             'redirect_uri' => ['nullable', 'url'],
             'unsigned_file' => array_filter(['required', 'array', 'min:1', $pdf ? 'max:1' : null]),
-            'unsigned_file.*' => array_filter(['required', 'file', $pdf ? 'mimes:pdf' : null, $xml ? 'mimetypes:application/xml,text/xml' : null]),
+            'unsigned_file.*' => array_filter(['bail', 'required', 'file', $pdf ? 'mimes:pdf' : null, $xml ? $this->validateXml(...) : null]),
             'signType' => ['required', Rule::in(['local', 'external', 'digest', 'eseal', 'multisign'])],
             'containerType' => ['required', Rule::in(['asice', 'pdf', 'enveloped-xades', 'asice-for-each-file'])],
             'pdf_x' => [Rule::excludeIf($ignoreAppearance), 'nullable', 'required_with:pdf_y', 'integer', 'min:0'],
@@ -50,13 +53,24 @@ class SigningPlaygroundRequest extends FormRequest
         ];
     }
 
+    private function validateXml(string $attribute, UploadedFile $file, Closure $fail): void
+    {
+        $document = new DOMDocument();
+        $options = LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING;
+        if (defined('LIBXML_NO_XXE')) {
+            $options |= LIBXML_NO_XXE;
+        }
+        if (!$document->load($file->path(), $options) || $document->doctype !== null) {
+            $fail('Enveloped XAdES signing requires a well-formed XML document without a document type declaration.');
+        }
+    }
+
     public function messages(): array
     {
         return [
             'unsigned_file.required' => 'Choose at least one file to sign.',
             'unsigned_file.max' => 'PDF signing accepts one PDF. Use an ASiC-E format to sign multiple files.',
             'unsigned_file.*.mimes' => 'PDF signing requires a PDF document.',
-            'unsigned_file.*.mimetypes' => 'Enveloped XAdES signing requires XML documents.',
             'pdf_x.required_with' => 'Enter both X and Y, or leave both empty for automatic placement.',
             'pdf_y.required_with' => 'Enter both X and Y, or leave both empty for automatic placement.',
             'pdf_page.min' => 'The API page index must be zero or greater.',
