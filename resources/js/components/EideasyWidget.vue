@@ -34,8 +34,8 @@ export default {
         <eideasy-widget
             country-code="EE"
             language="en"
-            :debug="true"
-            :sandbox="true"
+            :debug.prop="true"
+            :sandbox.prop="true"
             :client-id="clientId"
             :doc-id="docId"
             :api-endpoints.prop="apiEndpoints"
