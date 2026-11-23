@@ -7,6 +7,10 @@
         'baseline' => 'LT',
         'signature_redirect' => 'https://demo.example/show-download-signed-file?file_id=example',
         'return_available_methods' => true,
+        'notification_state' => ['time' => '<request timestamp>'],
+        'nodownload' => false,
+        'noemails' => false,
+        'hide_preview_download' => false,
     ];
     $file = fn ($name, $mime, $content) => ['fileName' => $name, 'mimeType' => $mime, 'fileContent' => $content];
     $pdf = $file('agreement.pdf', 'application/pdf', '<base64 PDF>');
@@ -51,9 +55,9 @@
     ];
 @endphp
 
-<details class="api-examples">
+<details class="api-examples" id="signing-api-examples">
     <summary>API request examples</summary>
-    <p class="field-hint">These example POST bodies reflect the selected flow and format. Optional fields are omitted. Credentials, file contents and document references are placeholders.</p>
+    <p class="field-hint">These POST examples update as you change the signing setup. Signer details, URLs, credentials and file data use placeholders.</p>
     @foreach($steps as $key => [$note, $extraRequests])
         <div data-flow="{{ $key }}" @if($flow !== $key) hidden @endif>
             <p class="field-hint">{{ $note }}</p>
@@ -61,7 +65,7 @@
                 <div data-format="{{ $exampleFormat }}" @if($format !== $exampleFormat) hidden @endif>
                     @foreach($key === 'digest' ? $requests : [...$requests, ...$extraRequests, $download] as [$endpoint, $body])
                         <h2>POST <code>{{ $endpoint }}</code></h2>
-                        <pre tabindex="0"><code>{{ json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) }}</code></pre>
+                        <pre tabindex="0"><code @if($endpoint === $prepareEndpoint) data-prepare-example @endif>{{ json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) }}</code></pre>
                     @endforeach
                 </div>
             @endforeach

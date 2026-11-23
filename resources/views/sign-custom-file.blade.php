@@ -16,7 +16,7 @@
             'enveloped-xades' => ['XML', 'Sign an XML file with an enveloped XAdES signature.'],
         ];
     @endphp
-    <div class="demo-heading signing-heading"><h1>Signing playground</h1><p>Try a signing API integration with a sample PDF or your own test files.</p></div>
+    <div class="demo-heading signing-heading"><h1>Signing playground</h1><p>Try a signing API integration with a sample PDF, a sample XML file or your own test files.</p></div>
     @include('form-feedback')
     <noscript><p class="alert alert-info">Enable JavaScript to preview the PDF and check manual placement. Leave X and Y empty to use automatic placement.</p></noscript>
     <form method="POST" enctype="multipart/form-data" class="signing-form" id="signing-playground">
@@ -32,7 +32,13 @@
                         <input name="unsigned_file[]" multiple type="file" id="unsigned_file" required data-event-name="signing_demo_upload_file_clicked" aria-label="Files to sign" aria-describedby="file-hint file-error">
                         <p id="file-hint">PDF, XML or any file for an ASiC-E container.</p>
                     </div>
-                    <button type="button" class="sample-file-button" id="use-sample-file">Or try a sample PDF</button>
+                    <div class="sample-file-options">
+                        <button type="button" class="sample-file-button" data-sample-file="{{ asset('samples/signing-demo.pdf') }}"
+                                data-format-choice="pdf" data-filename="sample-agreement.pdf" data-mime="application/pdf">Or try a sample PDF</button>
+                        <button type="button" class="sample-file-button" data-sample-file="{{ asset('samples/sample-invoice.xml') }}"
+                                data-format-choice="enveloped-xades" data-filename="sample-invoice.xml" data-mime="application/xml"
+                                @if(old('signType') === 'digest') hidden @endif>Try a sample XML file</button>
+                    </div>
                     <ul class="selected-files" id="selected-files" aria-label="Selected files"></ul>
                     <div class="field-error" id="file-feedback" hidden>
                         <div id="file-error" role="alert"></div>

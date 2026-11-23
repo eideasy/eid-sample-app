@@ -21,6 +21,12 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
     }
     const get = id => { if (!nodes.has(id)) nodes.set(id, node()); return nodes.get(id); };
     const form = get('signing-playground');
+    get('signing-api-examples').querySelector = () => get('prepare-example');
+    get('prepare-example').textContent = JSON.stringify({
+        signature_redirect: 'https://demo.example/return',
+        show_visual: true,
+        files: [{ fileName: 'example.pdf', mimeType: 'application/pdf', fileContent: '<file content>' }],
+    });
     let selectedFormat = 'pdf';
     const options = ['pdf', 'asice', 'enveloped-xades'].map(value => {
         const option = node();
@@ -38,9 +44,20 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
     get('unsigned_file').dispatchEvent = event => get('unsigned_file').handlers[event.type]();
     const automatic = get('automatic');
     automatic.dataset.preset = 'auto';
+    const pdfSample = get('pdf-sample');
+    pdfSample.dataset = {
+        sampleFile: '/samples/signing-demo.pdf', formatChoice: 'pdf',
+        filename: 'sample-agreement.pdf', mime: 'application/pdf',
+    };
+    const xmlSample = get('xml-sample');
+    xmlSample.dataset = {
+        sampleFile: '/samples/sample-invoice.xml', formatChoice: 'enveloped-xades',
+        filename: 'sample-invoice.xml', mime: 'application/xml',
+    };
     form.querySelectorAll = selector => {
         if (selector === 'input[name="containerType"]') return options;
         if (selector === '[data-preset]') return [automatic];
+        if (selector === '[data-sample-file]') return [pdfSample, xmlSample];
         return [];
     };
     form.querySelector = selector => {
@@ -199,10 +216,32 @@ test('sample PDF selection replaces the XML-only file picker filter', async () =
     app.optionFor('enveloped-xades').click();
     assert.equal(app.get('unsigned_file').accept, '.xml,text/xml,application/xml');
 
-    const sampleButton = app.get('use-sample-file');
+    const sampleButton = app.get('pdf-sample');
     await sampleButton.handlers.click({ currentTarget: sampleButton });
     assert.equal(app.get('unsigned_file').files[0].name, 'sample-agreement.pdf');
     assert.equal(app.get('unsigned_file').accept, '.pdf,application/pdf');
+});
+
+test('the XML sample replaces a PDF and selects a compatible output format', async () => {
+    const original = Buffer.from('%PDF original');
+    const app = fixture(original, undefined, async () => new Blob(['<sampleInvoice/>']));
+    await app.select(original);
+
+    const xml = app.get('xml-sample');
+    await xml.handlers.click({ currentTarget: xml });
+    const files = app.get('unsigned_file').files;
+    assert.equal(files.length, 1);
+    assert.equal(files[0].name, 'sample-invoice.xml');
+    assert.equal(files[0].type, 'application/xml');
+    assert.equal(app.get('unsigned_file').accept, '.xml,text/xml,application/xml');
+    assert.equal(app.get('file-feedback').hidden, true);
+
+    const flow = app.get('signType');
+    flow.value = 'digest';
+    flow.handlers.change();
+    assert.equal(xml.hidden, true);
+    assert.equal(app.get('pdf-sample').hidden, false);
+    assert.equal(app.get('unsigned_file').accept, '');
 });
 
 test('a late sample download keeps the newer file and output format', async () => {
@@ -210,7 +249,7 @@ test('a late sample download keeps the newer file and output format', async () =
     const blob = new Promise(resolve => { completeDownload = resolve; });
     const original = Buffer.from('%PDF original');
     const app = fixture(original, undefined, () => blob);
-    const sampleButton = app.get('use-sample-file');
+    const sampleButton = app.get('pdf-sample');
     const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
     app.optionFor('asice').click();
     await app.select(original);
@@ -225,7 +264,7 @@ test('changing only the output format cancels a pending sample download', async 
     let completeDownload;
     const blob = new Promise(resolve => { completeDownload = resolve; });
     const app = fixture(Buffer.from('%PDF original'), undefined, () => blob);
-    const sampleButton = app.get('use-sample-file');
+    const sampleButton = app.get('pdf-sample');
     const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
     app.optionFor('enveloped-xades').click();
     completeDownload(new Blob(['%PDF sample']));
@@ -240,7 +279,7 @@ test('changing the signing flow keeps its compatible format when a sample downlo
     const app = fixture(Buffer.from('%PDF original'), undefined, () => blob);
     app.optionFor('enveloped-xades').click();
 
-    const sampleButton = app.get('use-sample-file');
+    const sampleButton = app.get('pdf-sample');
     const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
     const flow = app.get('signType');
     flow.value = 'digest';
@@ -283,4 +322,58 @@ test('automatic placement preserves a manually selected page without a preview',
     assert.equal(app.get('pdf_y').value, '');
     assert.equal(page.value, '3');
     assert.equal(app.get('pdf_page_index').value, 2);
+});
+
+test('request examples reflect placement, files and invitations without showing private input', async () => {
+    const original = Buffer.from('%PDF example');
+    const app = fixture(original);
+    await app.select(original);
+    const examples = app.get('signing-api-examples');
+    const code = app.get('prepare-example');
+    const body = () => JSON.parse(code.textContent);
+    const edit = (field, value) => {
+        const control = app.get(field);
+        control.value = value;
+        control.handlers.input();
+    };
+    examples.open = true;
+    examples.handlers.toggle();
+
+    assert.equal(body().signer, undefined);
+    assert.equal(body().files[0].fileName, 'file-1.pdf');
+    assert.doesNotMatch(code.textContent, /same-name\.pdf/);
+    edit('simple_firstname', 'Private-name');
+    assert.equal(body().signer, undefined);
+    edit('simple_email', 'private@example.test');
+    edit('simple_sms', '+15005550006');
+    edit('redirect_uri', 'https://private.example.test/secret');
+    assert.deepEqual(body().signer, {
+        send_now: true,
+        first_name: '<signer first name>',
+        last_name: null,
+        contacts: [
+            { type: 'email', value: '<signer email>' },
+            { type: 'sms', value: '<signer mobile number>' },
+        ],
+    });
+    assert.equal(body().signature_redirect, 'https://your-app.example/complete');
+    assert.doesNotMatch(code.textContent, /private|15005550006/i);
+
+    edit('pdf_x', '30');
+    edit('pdf_y', '40');
+    assert.deepEqual(body().visual_coordinates, { x: 30, y: 40, page: 1 });
+    app.get('automatic').handlers.click();
+    assert.deepEqual(body().visual_coordinates, { page: 1 });
+    const hide = app.get('hide_pdf_visual');
+    hide.checked = true;
+    hide.handlers.change();
+    assert.equal(body().show_visual, false);
+    assert.equal(body().visual_coordinates, undefined);
+
+    edit('simple_email', '');
+    assert.deepEqual(body().signer.contacts, [{ type: 'sms', value: '<signer mobile number>' }]);
+    edit('simple_sms', '');
+    edit('redirect_uri', '');
+    assert.equal(body().signer, undefined);
+    assert.equal(body().signature_redirect, 'https://demo.example/return');
 });

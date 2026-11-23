@@ -49,11 +49,11 @@
   .signing-heading { margin-bottom: 27px; }
   &:has(.signing-heading) .main { padding-top: 30px; }
   .signing-heading h1 { font-size: clamp(2rem, 1.5rem + 2vw, 3.25rem); }
+  .sample-file-options { display: flex; flex-wrap: wrap; column-gap: 16px; }
   .sample-file-button { border: 0; background: transparent; color: #52744f; font-size: .9375rem; padding: 9px 0 0; text-decoration: underline; cursor: pointer; }
   .has-files .file-drop { padding: 0; text-align: left; background: transparent; border: 0; }
   .has-files .file-drop input { font-size: 0; width: 10rem; }
   .has-files .file-drop input::file-selector-button { font-size: .9375rem; }
-  .has-files .sample-file-button { display: none; }
   .has-files .file-drop > svg, .has-files .file-drop > p, .has-files .file-drop > label { display: none; }
   .signing-workspace { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); gap: 22px; align-items: start; }
   .setup-panel, .preview-panel { background: #fff; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; min-width: 0; }
@@ -165,7 +165,9 @@
   .preview-toolbar h2 { margin: 0; font-size: 1.5rem; }
   .api-examples { margin-top: 20px; }
   .api-examples h2 { margin: 20px 0 8px; font-size: 1.25rem; overflow-wrap: anywhere; }
-  .api-examples pre, .result-panel pre { padding: 16px; background: #eff4f0; color: #1c2e27; border-radius: 8px; font-size: .9375rem; }
+  .api-examples pre, .result-panel pre { padding: 16px; border-radius: 8px; font-size: .9375rem; }
+  .api-examples pre { background: #182c24; color: #f1f7f3; }
+  .result-panel pre { background: #eff4f0; color: #1c2e27; }
   .format-options input:disabled + span { color: var(--muted); background: transparent; border: 1px dashed #a4b7aa; cursor: not-allowed; }
   .alert ul { margin: 8px 0; padding-left: 22px; }
   @media (max-width: 1000px) { .main > .container { padding: 0 25px; } .topbar { padding: 15px 24px; } .topbar__brand_text { font-size: 18px; } .demo-nav { gap: 18px; font-size: .9375rem; } .signing-workspace { grid-template-columns: 1fr 1.1fr; gap: 16px; } .setup-section { padding: 22px; } .optional-settings { padding: 0 22px; } .preview-toolbar { flex-direction: column; align-items: start; } .simple-workspace { gap: 35px; } }

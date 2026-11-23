@@ -5,6 +5,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     if (!form) return;
     const el = id => document.getElementById(id);
     const input = el('unsigned_file');
+    const sampleButtons = form.querySelectorAll('[data-sample-file]');
     const formatSuggestion = el('suggested-format');
     const xInput = el('pdf_x');
     const yInput = el('pdf_y');
@@ -17,6 +18,9 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     const placementError = el('placement-error');
     const flow = el('signType');
     const hiddenVisual = el('hide_pdf_visual');
+    const apiExamples = el('signing-api-examples');
+    const prepareTemplates = new WeakMap();
+    const hasValue = field => el(field).value.trim() !== '';
     let documentPdf = null;
     let page = null;
     let viewport = null;
@@ -56,6 +60,9 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
 
     function updateFormatControls() {
         const selected = format();
+        sampleButtons.forEach(button => {
+            button.hidden = flow.value === 'digest' && button.dataset.formatChoice === 'enveloped-xades';
+        });
         form.querySelectorAll('input[name="containerType"]').forEach(option => {
             if (option.value === 'enveloped-xades' || option.value === 'asice-for-each-file') {
                 option.disabled = flow.value === 'digest';
@@ -85,7 +92,61 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         }
     });
 
+    function updateRequestExample() {
+        if (!apiExamples.open) return;
+        const code = apiExamples.querySelector('[data-flow]:not([hidden]) [data-format]:not([hidden]) [data-prepare-example]');
+        if (!code) return;
+        if (!prepareTemplates.has(code)) prepareTemplates.set(code, JSON.parse(code.textContent));
+        const body = { ...prepareTemplates.get(code), show_visual: appearanceAvailable() && !hiddenVisual.checked };
+
+        if (hasValue('redirect_uri')) {
+            body.signature_redirect = 'https://your-app.example/complete';
+        }
+
+        const contacts = [];
+        if (hasValue('simple_email')) contacts.push({ type: 'email', value: '<signer email>' });
+        if (hasValue('simple_sms')) contacts.push({ type: 'sms', value: '<signer mobile number>' });
+        if (contacts.length) {
+            body.signer = {
+                send_now: true,
+                first_name: hasValue('simple_firstname') ? '<signer first name>' : null,
+                last_name: hasValue('simple_lastname') ? '<signer last name>' : null,
+                contacts,
+            };
+        }
+
+        if (body.show_visual) {
+            const coordinates = {};
+            const pageNumber = Number(pageInput.value);
+            const x = Number(xInput.value);
+            const y = Number(yInput.value);
+            if (hasCustomPosition() && !placementProblem && Number.isSafeInteger(x) && Number.isSafeInteger(y) && x >= 0 && y >= 0) {
+                Object.assign(coordinates, { x, y, page: 0 });
+            }
+            if (Number.isSafeInteger(pageNumber) && pageNumber >= 1) coordinates.page = pageNumber - 1;
+            if (Object.keys(coordinates).length) body.visual_coordinates = coordinates;
+        }
+
+        if (input.files.length) {
+            const [file] = body.files;
+            const extension = pdfSelected() ? '.pdf' : format() === 'enveloped-xades' ? '.xml' : '';
+            body.files = Array.from(input.files, (_, index) => {
+                const fileName = 'file-' + (index + 1);
+                return {
+                    ...file,
+                    fileName: fileName + extension,
+                    mimeType: extension ? file.mimeType : '<detected MIME type>',
+                    ...(file.containerFileName ? { containerFileName: fileName + '_' + index + '.asice' } : {}),
+                };
+            });
+        }
+
+        const json = JSON.stringify(body, null, 4);
+        if (code.textContent !== json) code.textContent = json;
+    }
+
     function updateSummary() {
+        updateRequestExample();
         const count = input.files.length;
         const flowName = flow.options[flow.selectedIndex].text;
         const formatName = form.querySelector('input[name="containerType"]:checked + span').textContent;
@@ -124,6 +185,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         if (placementError.textContent !== placementProblem) placementError.textContent = placementProblem;
         [xInput, yInput].forEach(field => field.setAttribute('aria-invalid', placementProblem ? 'true' : 'false'));
         updateSubmitAvailability();
+        updateRequestExample();
 
         safeArea.hidden = !editable || !areaFits;
         if (!safeArea.hidden) positionOverlay(safeArea, [area.left, area.bottom, area.right, area.top]);
@@ -345,19 +407,22 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     }
 
     input.addEventListener('change', fileChange);
-    el('use-sample-file').addEventListener('click', async event => {
+    async function loadSample(event) {
         const button = event.currentTarget;
+        const { sampleFile, formatChoice, filename, mime } = button.dataset;
+        const option = form.querySelector('input[name="containerType"][value="' + formatChoice + '"]');
+        if (option.disabled) return;
         const revision = ++sampleGeneration;
         button.disabled = true;
         try {
-            const response = await fetch('/samples/signing-demo.pdf');
+            const response = await fetch(sampleFile);
             if (!response.ok) throw new Error('Sample unavailable');
             const blob = await response.blob();
             if (revision !== sampleGeneration || submitting) return;
             const transfer = new DataTransfer();
-            transfer.items.add(new File([blob], 'sample-agreement.pdf', { type: 'application/pdf' }));
+            transfer.items.add(new File([blob], filename, { type: mime }));
             input.files = transfer.files;
-            form.querySelector('input[name="containerType"][value="pdf"]').checked = true;
+            option.checked = true;
             updateFormatControls();
             input.dispatchEvent(new Event('change', { bubbles: true }));
         } catch (error) {
@@ -366,7 +431,8 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
             }
         }
         finally { button.disabled = false; }
-    });
+    }
+    sampleButtons.forEach(button => button.addEventListener('click', loadSample));
     flow.addEventListener('change', () => {
         ++sampleGeneration;
         form.querySelectorAll('[data-flow]').forEach(node => { node.hidden = node.dataset.flow !== flow.value; });
@@ -382,11 +448,20 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         updateSummary();
         loadPreview();
     }));
+    apiExamples.addEventListener('toggle', updateRequestExample);
+    ['redirect_uri', 'simple_email', 'simple_sms', 'simple_firstname', 'simple_lastname'].forEach(field => {
+        el(field).addEventListener('input', updateRequestExample);
+        el(field).addEventListener('change', updateRequestExample);
+    });
+    pageInput.addEventListener('input', updateRequestExample);
     hiddenVisual.addEventListener('change', updateAppearance);
     [xInput, yInput].forEach(field => field.addEventListener('input', updateMarker));
     pageInput.addEventListener('change', async () => {
         if (documentPdf) { currentPage = pageIndex(pageInput.value, documentPdf.numPages) + 1; await renderPage(); }
-        else pageIndexInput.value = Math.max(0, Math.trunc(Number(pageInput.value) || 1) - 1);
+        else {
+            pageIndexInput.value = Math.max(0, Math.trunc(Number(pageInput.value) || 1) - 1);
+            updateRequestExample();
+        }
     });
     el('previous-page').addEventListener('click', async () => { currentPage = Math.max(1, currentPage - 1); await renderPage(); });
     el('next-page').addEventListener('click', async () => { currentPage = Math.min(documentPdf.numPages, currentPage + 1); await renderPage(); });
@@ -464,8 +539,8 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
             timer = setTimeout(() => { if (documentPdf) renderPage().catch(() => {}); }, 100);
         }).observe(stage);
     }
-    updateSummary();
-    updateAppearance();
     updateFormatControls();
+    updateAppearance();
+    updateSummary();
     if (el('validation-errors')) el('validation-errors').focus();
 })();
