@@ -368,6 +368,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         finally { button.disabled = false; }
     });
     flow.addEventListener('change', () => {
+        ++sampleGeneration;
         form.querySelectorAll('[data-flow]').forEach(node => { node.hidden = node.dataset.flow !== flow.value; });
         updateFormatControls();
         validateFiles();

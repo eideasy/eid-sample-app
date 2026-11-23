@@ -234,6 +234,26 @@ test('changing only the output format cancels a pending sample download', async 
     assert.equal(app.get('unsigned_file').accept, '.xml,text/xml,application/xml');
 });
 
+test('changing the signing flow keeps its compatible format when a sample download is pending', async () => {
+    let completeDownload;
+    const blob = new Promise(resolve => { completeDownload = resolve; });
+    const app = fixture(Buffer.from('%PDF original'), undefined, () => blob);
+    app.optionFor('enveloped-xades').click();
+
+    const sampleButton = app.get('use-sample-file');
+    const downloading = sampleButton.handlers.click({ currentTarget: sampleButton });
+    const flow = app.get('signType');
+    flow.value = 'digest';
+    flow.handlers.change();
+    assert.equal(app.get('unsigned_file').accept, '');
+
+    completeDownload(new Blob(['%PDF sample']));
+    await downloading;
+    assert.equal(app.get('unsigned_file').files.length, 0);
+    assert.equal(app.get('unsigned_file').accept, '');
+    assert.equal(sampleButton.disabled, false);
+});
+
 test('PDF digest signing keeps the preview and disables appearance controls', async () => {
     const original = Buffer.from('%PDF original');
     const app = fixture(original);
