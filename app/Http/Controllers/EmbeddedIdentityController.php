@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use EidEasy\Api\EidEasyApi;
 use EidEasy\EidEasyParams;
+use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -14,8 +15,9 @@ class EmbeddedIdentityController extends Controller
 {
     protected EidEasyApi $eidEasyApi;
 
-    public function __construct(EidEasyApi $api)
+    public function __construct(EidEasyApi $api, Client $client)
     {
+        $api->setGuzzle($client);
         $api->setClientId(config('eideasy.client_id'));
         $api->setSecret(config('eideasy.secret'));
         $api->setApiUrl(config('eideasy.api_url'));

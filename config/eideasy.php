@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'wallet_demos_url' => env('EID_WALLET_DEMOS_URL', 'https://eudiw-playground.eideasy.com/'),
     'client_id'     => env('EID_CLIENT_ID', '2IaeiZXbcKzlP1KvjZH9ghty2IJKM8Lg'),
     'secret'        => env('EID_SECRET', '56RkLgZREDi1H0HZAvzOSAVlxu1Flx41'),
     'api_url'       => env('EID_API_URL', 'https://test.eideasy.com'),

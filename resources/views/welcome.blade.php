@@ -1,63 +1,45 @@
 @extends('template')
-
+@section('title', 'eID Easy playground')
 @section('content')
+    <div class="demo-heading hub-heading">
+        <h1>eID Easy playground</h1>
+        <p>Try eID Easy’s signing, identification and wallet integrations with test data.</p>
+    </div>
 
     @if(!empty($error))
-    <div class="alert alert-danger">
-        <span>{{ $error }}</span>
+        <div class="alert alert-danger" role="alert">{{ $error }}</div>
+    @elseif(isset($userData))
+        <section class="result-panel setup-panel mb-4" aria-labelledby="oauth-result">
+            <h2 id="oauth-result">OAuth login result</h2>
+            <pre tabindex="0"><code>{{ json_encode($userData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}</code></pre>
+        </section>
+    @endif
+
+    <div class="demo-catalogue">
+        <a class="demo-card featured" href="{{ url('sign-custom-file') }}">
+            <div class="demo-card-top"><i data-lucide="file-signature" aria-hidden="true"></i></div>
+            <h2>Digital signatures</h2>
+            <p>Try the signing page, embed the signing widget, send document digests for signing or create a sandbox e-Seal.</p>
+            <span class="card-action">Open the signing playground <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
+        </a>
+        <a class="demo-card sage" href="{{ route('oauth.start') }}">
+            <div class="demo-card-top"><i data-lucide="external-link" aria-hidden="true"></i></div>
+            <h2>OAuth 2.0 login</h2>
+            <p>Choose an identity provider on the eID Easy login page. After login, the demo backend exchanges the authorization code and retrieves the available user data.</p>
+            <span class="card-action">Try OAuth login <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
+        </a>
+        <a class="demo-card" href="{{ config('eideasy.wallet_demos_url') }}" target="_blank" rel="noopener">
+            <div class="demo-card-top"><i data-lucide="wallet-cards" aria-hidden="true"></i></div>
+            <h2>Digital identity wallets</h2>
+            <p>Try sharing wallet credentials in the rental, banking and cinema demos, or inspect the requests in the technical playground.</p>
+            <span class="card-action">Explore the wallet demos <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
+        </a>
     </div>
-    @endif
-
-    @if (isset($userData))
-        <div id="app">
-            <user-data :user-data='@json($userData)'></user-data>
-        </div>
-    @endif
-
-    @if (!isset($userData) && empty($error))
-        <h1 class="hero">
-            <a
-                    href="https://eideasy.com"
-                    target="_blank"
-                    class="hero__link"
-            >
-                <img
-                        class="hero__link_image"
-                        src="{{ asset('img/eideasy-black-logo.png') }}"
-                        alt="eID Easy Demo"
-                >
-            </a>
-            <br>
-            Services Demo
-        </h1>
-    @endif
-
-    @if (empty($error))
-    <p>
-        This is a demo app you can use to test out <a href="https://eideasy.com" target="_blank">eID Easy</a> services.
-    </p>
-
-    <p>
-        Source code for this app is available at <a href="https://github.com/eideasy/eid-sample-app" target="_blank">https://github.com/eideasy/eid-sample-app</a>
-    </p>
-    <p>
-        Documentation for eID Easy services is available at <a href="https://docs.eideasy.com" target="_blank">https://docs.eideasy.com</a>
-    </p>
-
-    <div class="pt-4">
-        <ul class="list-group">
-            <li class="list-group-item"><a href="{{$authorizeUri}}">Login with OAuth 2.0</a></li>
-            <li class="list-group-item"><a href="{{url('login-widget')}}">Login widget</a></li>
-            <li class="list-group-item"><a href="{{url('sign-custom-file')}}">Sign a file or create an e-Seal</a></li>
-            <li class="list-group-item"><a href="{{url('add-signature-signed-file')}}">Add signature to an existing .asice
-                    container</a></li>
+    <details class="additional-demos">
+        <summary>More integration examples</summary>
+        <ul>
+            <li><a href="{{ url('login-widget') }}">Standalone embedded identification widget</a></li>
+            <li><a href="{{ url('add-signature-signed-file') }}">Add a signature to an existing ASiC-E container</a></li>
         </ul>
-    </div>
-    @endif
-@endsection
-
-@section('scripts')
-    @if (isset($userData))
-        <script type="text/javascript" src="{{mix('/js/app.js')}}"></script>
-    @endif
+    </details>
 @endsection

@@ -36,13 +36,18 @@ class SampleViewController extends Controller
 
     public function showDownloadSignedFile(Request $request)
     {
-        if ($request->has('file_id')) {
-            $fileId = $request->input('file_id');
-        } else {
-            $fileId = Cache::get("file_id-$request->doc_id");
+        $query = $request->query();
+        $fileId = $query['file_id'] ?? null;
+        $docId = $query['doc_id'] ?? null;
+        if ($fileId === null && is_string($docId) && preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $docId)) {
+            $fileId = Cache::get("file_id-$docId");
         }
 
-        return view('download-signed-file', ['fileId' => $fileId]);
+        if (!is_string($fileId) || !preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $fileId) || !(Cache::has("doc_id-$fileId") || $request->session()->has("doc_id-$fileId"))) {
+            return redirect('/sign-custom-file')->with('message', 'This signing session is unavailable. Prepare the files again.');
+        }
+
+        return response()->view('download-signed-file', ['fileId' => $fileId])->header('Cache-Control', 'no-store');
     }
 
     public function signCustomFile()
@@ -52,27 +57,35 @@ class SampleViewController extends Controller
 
     public function signLocallySample(Request $request)
     {
-        $fileId = Cache::get("file_id-$request->doc_id");
-        $metadata = Cache::get("prepared-files-$fileId", []);
-        $availableMethods = Cache::get("available_methods-$request->doc_id", []);
-        $files = [];
+        $docId = $request->query()['doc_id'] ?? null;
+        $fileId = is_string($docId) && preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $docId)
+            ? Cache::get("file_id-$docId")
+            : null;
+        $files = $fileId ? Cache::get("prepared-files-$fileId", []) : [];
 
-        foreach ($metadata as $meta) {
-            $file = $meta;
-            $file['fileContent'] = base64_encode(Storage::get("/unsigned/$fileId/" . $meta['fileName']));
-            $files[] = $file;
+        if ($files === []) {
+            return redirect('/sign-custom-file')->with('message', 'This signing session is unavailable. Prepare the files again.');
         }
 
-        $data = [
+        foreach ($files as &$file) {
+            $file['pdfPreview'] = null;
+            if ($file['mimeType'] === 'application/pdf') {
+                $content = Storage::get("/unsigned/$fileId/" . $file['fileName']);
+                if (is_string($content) && str_starts_with($content, '%PDF-')) {
+                    $file['pdfPreview'] = base64_encode($content);
+                }
+            }
+        }
+        unset($file);
+
+        return response()->view('sign-locally-sample', [
             'base_url' => config('eideasy.api_url'),
             'client_id' => config('eideasy.client_id'),
-            'available_methods' => $availableMethods,
-            'doc_id' => $request->doc_id,
+            'available_methods' => Cache::get("available_methods-$docId", []),
+            'doc_id' => $docId,
             'file_id' => $fileId,
-            'files' => $files
-        ];
-
-        return view('sign-locally-sample', $data);
+            'files' => $files,
+        ])->header('Cache-Control', 'no-store')->header('Referrer-Policy', 'no-referrer');
     }
 
     public function signViaCscApiView()
