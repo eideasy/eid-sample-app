@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
@@ -25,7 +26,7 @@ class AddSignatureController extends Controller
     public function startAddingSignature(Request $request)
     {
         $request->validate([
-            'redirect_uri' => 'nullable|url',
+            'redirect_uri' => 'nullable|url:http,https|max:2048',
             'signed_file'  => 'required|file'
         ]);
         info("Start preparing adding signature");
@@ -46,19 +47,25 @@ class AddSignatureController extends Controller
                     'container'          => base64_encode(file_get_contents($request->file('signed_file')->path()))
                 ]
             ]);
-        } catch (ClientException $e) {
-            $response = $e->getResponse()->getBody();
-            Log::error("Add signature preparation failed: $response");
-            return $response;
+            $data = json_decode((string) $response->getBody());
+        } catch (GuzzleException) {
+            $data = null;
+        }
+        if (!is_string($data->doc_id ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,128}$/D', $data->doc_id)) {
+            return redirect('/add-signature-signed-file')
+                ->withInput()
+                ->with('alert-class', 'alert-danger')
+                ->with('message', 'Could not prepare the signed container. Choose it again and retry.');
         }
 
-        $data = json_decode((string)$response->getBody());
         Session::put("doc_id-$fileId", $data->doc_id); //Keep for later so we can download the file
         info("Signed file prepared for adding signature: $fileId, doc_id=$data->doc_id");
 
         $clientId = config('eideasy.client_id');
 
-        return redirect()->to(config('eideasy.api_url') . "/add-signature?client_id=$clientId&doc_id=$data->doc_id");
+        return redirect()->away(rtrim(config('eideasy.api_url'), '/') . '/add-signature?' . http_build_query([
+            'client_id' => $clientId, 'doc_id' => $data->doc_id,
+        ]));
     }
 
     public function downloadSignedFile(Request $request)

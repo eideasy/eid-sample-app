@@ -1,7 +1,13 @@
 /*!
- * Signature Pad v4.1.4 | https://github.com/szimek/signature_pad
- * (c) 2022 Szymon Nowak | Released under the MIT license
- */
+    * shared v11.1.11
+    * (c) 2025 kazuya kawaguchi
+    * Released under the MIT License.
+    */
+
+/*!
+   * Signature Pad v5.1.0 | https://github.com/szimek/signature_pad
+   * (c) 2025 Szymon Nowak | Released under the MIT license
+   */
 
 /*!
  * The buffer module from node.js, for the browser.
@@ -16,15 +22,19 @@
  * Released under the MIT License.
  */
 
+/*! #__NO_SIDE_EFFECTS__ */
+
 /*! For license information please see eideasy-browser-client.js.LICENSE.txt */
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
+
 /**
-  * vue-custom-element v3.2.14
-  * (c) 2020 Karol Fabjańczuk
+  * @vue/shared v3.5.14
+  * (c) 2018-present Yuxi (Evan) You and Vue contributors
   * @license MIT
-  */
+  **/
 
 /**
  * @license

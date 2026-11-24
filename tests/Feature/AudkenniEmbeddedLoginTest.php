@@ -11,6 +11,7 @@ class AudkenniEmbeddedLoginTest extends TestCase
     private function mockApi()
     {
         $api = Mockery::mock(EidEasyApi::class);
+        $api->shouldReceive('setGuzzle')->once();
         $api->shouldReceive('setClientId')->once();
         $api->shouldReceive('setSecret')->once();
         $api->shouldReceive('setApiUrl')->once();

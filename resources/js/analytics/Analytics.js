@@ -24,20 +24,6 @@ class Analytics {
         this.DOM.clickableElements = this.DOM.el.querySelectorAll(`[${this.eventNameAttribute}]`);
         this.DOM.changeableElements = this.DOM.el.querySelectorAll(`[${this.eventNameAttributeOnchange}]`);
 
-        const urlParams = new URLSearchParams(window.location.search);
-
-        if (urlParams.has('action-ref')) {
-            this.track(urlParams.get('action-ref'));
-
-            // To prevent duplicate tracking, we remove the action-ref from the URL.
-            urlParams.delete('action-ref');
-
-            const urlParamsString = urlParams.toString().trim();
-            window.history.replaceState(null, '',
-              window.location.pathname.concat(urlParamsString.length ? '?'.concat(urlParams.toString()) : '')
-            );
-        }
-
         this.DOM.clickableElements.forEach((element) => {
             this.attachClickEvents(element);
         });

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sampleInvoice>
+    <invoiceNumber>DEMO-001</invoiceNumber>
+    <description>Fictional invoice for testing XML signatures</description>
+    <total currency="EUR">25.00</total>
+</sampleInvoice>
