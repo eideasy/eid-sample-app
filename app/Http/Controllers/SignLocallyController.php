@@ -157,6 +157,16 @@ class SignLocallyController extends Controller
             'return_available_methods' => true,
         ] + $additionalPrepareParams;
 
+        // All levels are allowed by default, so only send the parameter when the selection limits them.
+        // E-Seals are created without a signer choosing a method.
+        $signatureLevels = array_values(array_intersect(
+            SigningPlaygroundRequest::SIGNATURE_LEVELS,
+            $validated['allowed_signature_levels'] ?? []
+        ));
+        if ($signType !== 'eseal' && $signatureLevels !== [] && count($signatureLevels) < count(SigningPlaygroundRequest::SIGNATURE_LEVELS)) {
+            $prepareParams['allowed_signature_levels'] = $signatureLevels;
+        }
+
         $signerContacts = [];
         if ($request->has('simple_email') && !empty($request->input('simple_email'))) {
             $signerContacts[] = (object)[

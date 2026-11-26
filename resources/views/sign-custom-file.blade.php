@@ -15,6 +15,9 @@
             'asice-for-each-file' => ['ASiC-E per file', 'Create a separate signed .asice container for each uploaded file.'],
             'enveloped-xades' => ['XML', 'Sign an XML file with an enveloped XAdES signature.'],
         ];
+        $signatureLevels = ['simple' => 'Simple', 'advanced' => 'Advanced', 'qualified' => 'Qualified'];
+        $selectedSignatureLevels = old('allowed_signature_levels', array_keys($signatureLevels));
+        $selectedSignatureLevels = is_array($selectedSignatureLevels) ? $selectedSignatureLevels : [];
     @endphp
     <div class="demo-heading signing-heading"><h1>Signing playground</h1><p>Try a signing API integration with a sample PDF, a sample XML file or your own test files.</p></div>
     @include('form-feedback')
@@ -70,6 +73,17 @@
                         <label for="simple_email">Signer’s email</label><input type="email" name="simple_email" id="simple_email" value="{{ old('simple_email') }}" autocomplete="email" data-event-name-onchange="signing_demo_simple_signature_email_changed">
                         <label for="simple_sms">Signer’s mobile number</label><input type="tel" name="simple_sms" id="simple_sms" value="{{ old('simple_sms') }}" placeholder="+372…" autocomplete="tel" data-event-name-onchange="signing_demo_phone_changed"><p class="field-hint">Include the country code, for example +37255512345.</p>
                         <div class="input-pair"><div><label for="simple_firstname">Signer’s first name</label><input name="simple_firstname" id="simple_firstname" value="{{ old('simple_firstname') }}" autocomplete="given-name" data-event-name-onchange="signing_demo_first_name_changed"></div><div><label for="simple_lastname">Signer’s last name</label><input name="simple_lastname" id="simple_lastname" value="{{ old('simple_lastname') }}" autocomplete="family-name" data-event-name-onchange="signing_demo_last_name_changed"></div></div>
+                    </details>
+                    <details id="signature-level-settings" @if($errors->hasAny(['allowed_signature_levels', 'allowed_signature_levels.*'])) open @endif>
+                        <summary><i data-lucide="shield-check" aria-hidden="true"></i>Signature levels <span class="optional-label">Optional</span></summary>
+                        <p class="field-hint">Limit the signing methods shown to the signer to the selected levels. All levels are allowed by default. Sent to the API as <code>allowed_signature_levels</code>.</p>
+                        <fieldset class="signature-level-options" id="signature-level-options" aria-describedby="signature-level-error"><legend>Allowed signature levels</legend>
+                            @foreach($signatureLevels as $value => $label)
+                                <label class="visual-toggle"><input type="checkbox" name="allowed_signature_levels[]" value="{{ $value }}" @checked(in_array($value, $selectedSignatureLevels, true)) data-event-name="signing_demo_signature_level_changed"><span>{{ $label }}</span></label>
+                            @endforeach
+                        </fieldset>
+                        <p class="field-error" id="signature-level-error" role="alert" hidden></p>
+                        <p class="field-hint" id="eseal-level-note" @if(old('signType') !== 'eseal') hidden @endif>Signature levels do not apply to automatic e-Seals.</p>
                     </details>
                     <details @if($errors->has('redirect_uri')) open @endif><summary><i data-lucide="link" aria-hidden="true"></i>Redirect settings <span class="optional-label">Optional</span></summary><label for="redirect_uri">Return URL after signing</label><input type="url" name="redirect_uri" id="redirect_uri" value="{{ old('redirect_uri') }}" placeholder="https://your-app.example/complete" data-event-name-onchange="signing_demo_redirect_url_typed"><p class="field-hint">Leave empty to return here and download the signed file.</p></details>
                 </div>

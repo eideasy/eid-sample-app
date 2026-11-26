@@ -19,6 +19,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     const flow = el('signType');
     const hiddenVisual = el('hide_pdf_visual');
     const apiExamples = el('signing-api-examples');
+    const levelInputs = Array.from(form.querySelectorAll('input[name="allowed_signature_levels[]"]'));
     const prepareTemplates = new WeakMap();
     const hasValue = field => el(field).value.trim() !== '';
     let documentPdf = null;
@@ -37,6 +38,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     let loadingPreview = false;
     let loadingPage = false;
     let placementProblem = '';
+    let levelProblem = '';
     let selectionGeneration = 0;
     let sampleGeneration = 0;
     const format = () => form.querySelector('input[name="containerType"]:checked').value;
@@ -44,9 +46,11 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     const appearanceAvailable = () => pdfSelected() && flow.value !== 'digest';
     const hasCustomPosition = () => xInput.value !== '' && yInput.value !== '';
     const describe = message => { el('preview-message').textContent = message; };
+    const levelsAvailable = () => flow.value !== 'eseal';
+    const selectedLevels = () => levelInputs.filter(option => option.checked).map(option => option.value);
 
     function updateSubmitAvailability() {
-        el('start-signing').disabled = submitting || selectingFile || loadingPreview || loadingPage || Boolean(placementProblem);
+        el('start-signing').disabled = submitting || selectingFile || loadingPreview || loadingPage || Boolean(placementProblem) || Boolean(levelProblem);
     }
 
     function showProblem(message, suggestedFormat = '') {
@@ -84,6 +88,18 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         return problem;
     }
 
+    function updateSignatureLevels() {
+        const available = levelsAvailable();
+        el('signature-level-options').disabled = !available;
+        el('eseal-level-note').hidden = available;
+        levelProblem = available && levelInputs.length && !selectedLevels().length ? 'Choose at least one signature level.' : '';
+        const error = el('signature-level-error');
+        error.hidden = !levelProblem;
+        if (error.textContent !== levelProblem) error.textContent = levelProblem;
+        updateSubmitAvailability();
+        updateRequestExample();
+    }
+
     formatSuggestion.addEventListener('click', () => {
         const option = form.querySelector(`input[name="containerType"][value="${formatSuggestion.value}"]`);
         if (option) {
@@ -98,6 +114,12 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         if (!code) return;
         if (!prepareTemplates.has(code)) prepareTemplates.set(code, JSON.parse(code.textContent));
         const body = { ...prepareTemplates.get(code), show_visual: appearanceAvailable() && !hiddenVisual.checked };
+
+        // All levels are allowed by default, so the example only shows a limiting selection.
+        const levels = selectedLevels();
+        if (levelsAvailable() && levels.length && levels.length < levelInputs.length) {
+            body.allowed_signature_levels = levels;
+        }
 
         if (hasValue('redirect_uri')) {
             body.signature_redirect = 'https://your-app.example/complete';
@@ -439,8 +461,10 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         updateFormatControls();
         validateFiles();
         updateAppearance();
+        updateSignatureLevels();
         updateSummary();
     });
+    levelInputs.forEach(option => option.addEventListener('change', updateSignatureLevels));
     form.querySelectorAll('input[name="containerType"]').forEach(radio => radio.addEventListener('change', () => {
         ++sampleGeneration;
         updateFormatControls();
@@ -523,6 +547,13 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
         if (problem) { event.preventDefault(); input.focus(); return; }
         updateMarker();
         if (placementProblem) { event.preventDefault(); xInput.focus(); return; }
+        updateSignatureLevels();
+        if (levelProblem) {
+            event.preventDefault();
+            el('signature-level-settings').open = true;
+            levelInputs[0].focus();
+            return;
+        }
         ++sampleGeneration;
         submitting = true;
         el('start-signing').disabled = true;
@@ -541,6 +572,7 @@ const { clamp, placementArea, fitsPlacement, signatureWidth, signatureHeight, pa
     }
     updateFormatControls();
     updateAppearance();
+    updateSignatureLevels();
     updateSummary();
     if (el('validation-errors')) el('validation-errors').focus();
 })();
