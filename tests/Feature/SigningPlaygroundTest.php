@@ -68,6 +68,47 @@ class SigningPlaygroundTest extends TestCase
         $this->assertFalse($this->prepared()['show_visual']);
     }
 
+    #[DataProvider('unrestrictedSignatureLevels')]
+    public function testAllSignatureLevelsAreAllowedByDefault(array $overrides): void
+    {
+        $this->post('/sign-custom-file', $this->payload($overrides))->assertRedirect();
+        $this->assertArrayNotHasKey('allowed_signature_levels', $this->prepared());
+    }
+
+    public static function unrestrictedSignatureLevels(): array
+    {
+        return [
+            'not selected' => [[]],
+            'every level selected' => [['allowed_signature_levels' => ['qualified', 'simple', 'advanced']]],
+        ];
+    }
+
+    public function testSelectedSignatureLevelsLimitTheSigningOptions(): void
+    {
+        $this->post('/sign-custom-file', $this->payload(['allowed_signature_levels' => ['qualified', 'advanced']]))->assertRedirect();
+        $this->assertSame(['advanced', 'qualified'], $this->prepared()['allowed_signature_levels']);
+    }
+
+    public function testSignatureLevelsAreNotSentForESeals(): void
+    {
+        config(['eideasy.eid_test_api' => 'https://sandbox.example', 'eideasy.eid_test_client_id' => 'sandbox-client', 'eideasy.eid_test_secret' => 'sandbox-secret']);
+        $this->mockSigningApi(
+            new Response(200, [], '{"status":"OK","doc_id":"demo-document"}'),
+            new Response(200, [], '{"status":"OK"}'),
+        );
+        $this->post('/sign-custom-file', $this->payload(['signType' => 'eseal', 'allowed_signature_levels' => ['qualified']]))->assertRedirect();
+        $this->assertArrayNotHasKey('allowed_signature_levels', $this->prepared());
+    }
+
+    public function testUnknownSignatureLevelsAreRejected(): void
+    {
+        $this->postJson('/sign-custom-file', $this->payload(['allowed_signature_levels' => ['qualified', 'basic']]))
+            ->assertUnprocessable()->assertJsonValidationErrors('allowed_signature_levels.1');
+        $this->postJson('/sign-custom-file', $this->payload(['allowed_signature_levels' => 'qualified']))
+            ->assertUnprocessable()->assertJsonValidationErrors('allowed_signature_levels');
+        $this->assertCount(0, $this->requests);
+    }
+
     public function testHumanPageNumbersConvertOnTheServerWithoutJavaScript(): void
     {
         $this->post('/sign-custom-file', $this->payload(['pdf_x' => 10, 'pdf_y' => 20, 'pdf_page' => 0, 'pdf_page_display' => 2]))->assertRedirect();

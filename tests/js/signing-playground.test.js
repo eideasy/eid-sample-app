@@ -54,7 +54,14 @@ function fixture(contents, beforePageLoad = () => {}, sampleBlob = async () => n
         sampleFile: '/samples/sample-invoice.xml', formatChoice: 'enveloped-xades',
         filename: 'sample-invoice.xml', mime: 'application/xml',
     };
+    const levels = ['simple', 'advanced', 'qualified'].map(value => {
+        const level = get('level-' + value);
+        level.value = value;
+        level.checked = true;
+        return level;
+    });
     form.querySelectorAll = selector => {
+        if (selector === 'input[name="allowed_signature_levels[]"]') return levels;
         if (selector === 'input[name="containerType"]') return options;
         if (selector === '[data-preset]') return [automatic];
         if (selector === '[data-sample-file]') return [pdfSample, xmlSample];
@@ -376,4 +383,54 @@ test('request examples reflect placement, files and invitations without showing 
     edit('redirect_uri', '');
     assert.equal(body().signer, undefined);
     assert.equal(body().signature_redirect, 'https://demo.example/return');
+});
+
+test('signature levels limit the prepare request only when some levels are deselected', async () => {
+    const contents = Buffer.from('%PDF levels');
+    const app = fixture(contents);
+    await app.select(contents);
+    const examples = app.get('signing-api-examples');
+    const body = () => JSON.parse(app.get('prepare-example').textContent);
+    const toggle = (value, checked) => {
+        const level = app.get('level-' + value);
+        level.checked = checked;
+        level.handlers.change();
+    };
+    app.get('pdf_x').value = '';
+    app.get('pdf_y').value = '';
+    app.get('pdf_x').handlers.input();
+    examples.open = true;
+    examples.handlers.toggle();
+
+    assert.equal(body().allowed_signature_levels, undefined);
+    toggle('simple', false);
+    assert.deepEqual(body().allowed_signature_levels, ['advanced', 'qualified']);
+    toggle('advanced', false);
+    assert.deepEqual(body().allowed_signature_levels, ['qualified']);
+    assert.equal(app.get('start-signing').disabled, false);
+
+    toggle('qualified', false);
+    assert.equal(app.get('signature-level-error').hidden, false);
+    assert.equal(app.get('signature-level-error').textContent, 'Choose at least one signature level.');
+    assert.equal(app.get('start-signing').disabled, true);
+    let prevented = false;
+    app.get('signing-playground').handlers.submit({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.equal(app.get('signature-level-settings').open, true);
+
+    app.get('signType').value = 'eseal';
+    app.get('signType').handlers.change();
+    assert.equal(app.get('signature-level-options').disabled, true);
+    assert.equal(app.get('eseal-level-note').hidden, false);
+    assert.equal(app.get('signature-level-error').hidden, true);
+    assert.equal(app.get('start-signing').disabled, false);
+
+    toggle('qualified', true);
+    assert.equal(body().allowed_signature_levels, undefined);
+    app.get('signType').value = 'external';
+    app.get('signType').handlers.change();
+    assert.deepEqual(body().allowed_signature_levels, ['qualified']);
+    toggle('simple', true);
+    toggle('advanced', true);
+    assert.equal(body().allowed_signature_levels, undefined);
 });

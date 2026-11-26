@@ -10,6 +10,8 @@ use Illuminate\Validation\Rule;
 
 class SigningPlaygroundRequest extends FormRequest
 {
+    public const SIGNATURE_LEVELS = ['simple', 'advanced', 'qualified'];
+
     public function authorize(): bool
     {
         return true;
@@ -51,6 +53,8 @@ class SigningPlaygroundRequest extends FormRequest
             'simple_lastname' => ['nullable', 'string', 'max:255'],
             'simple_email' => ['nullable', 'email'],
             'simple_sms' => ['nullable', 'regex:/^\+\d{7,15}$/'],
+            'allowed_signature_levels' => ['nullable', 'array', 'min:1'],
+            'allowed_signature_levels.*' => ['distinct', Rule::in(self::SIGNATURE_LEVELS)],
         ];
     }
 
@@ -76,6 +80,8 @@ class SigningPlaygroundRequest extends FormRequest
             'pdf_x.required_with' => 'Enter both X and Y, or leave both empty for automatic placement.',
             'pdf_y.required_with' => 'Enter both X and Y, or leave both empty for automatic placement.',
             'pdf_page.min' => 'The API page index must be zero or greater.',
+            'allowed_signature_levels.*.in' => 'Choose simple, advanced or qualified signature levels.',
+            'allowed_signature_levels.*.distinct' => 'Choose each signature level only once.',
         ];
     }
 }

@@ -128,6 +128,10 @@
   .appearance-controls { min-width: 0; border: 0; padding: 19px 23px 23px; margin: 0; }
   .visual-toggle { display: flex !important; gap: 9px; align-items: center; font-size: .9375rem !important; font-weight: 400 !important; cursor: pointer; margin-bottom: 17px !important; }
   .visual-toggle input { width: 16px; height: 16px; accent-color: #193f35; }
+  .signature-level-options { min-width: 0; border: 0; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .signature-level-options legend { width: 100%; font-size: .9375rem; font-weight: 600; margin-bottom: 4px; }
+  .signature-level-options .visual-toggle { margin: 0 !important; }
+  .signature-level-options:disabled .visual-toggle { cursor: not-allowed; opacity: .55; }
   .coordinate-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .coordinate-fields label { font-size: .9375rem; }
   .coordinate-fields input { height: 37px !important; font-size: .9375rem !important; }
